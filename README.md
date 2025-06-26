@@ -1,4 +1,7 @@
 # pot-summer-25
+
+## Authors
 Edgar
 Kasparas
-Mark
+Mykyta Tishkin
+Mark Andžejevski
