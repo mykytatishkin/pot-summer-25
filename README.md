@@ -1,3 +1,6 @@
 # pot-summer-25
-Kasparas
-Agilė Astapovičiūtė
+## Authors
+Edgar  
+Kasparas  
+Mykyta Tishkin  
+Agilė Astapovičiūtė  
