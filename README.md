@@ -3,4 +3,4 @@
 ## Authors
 Edgar
 Kasparas
-Mykyta
+Mykyta Tishkin
