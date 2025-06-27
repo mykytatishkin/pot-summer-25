@@ -1,22 +1,10 @@
 # pot-summer-25
-## Authors
+## Authors:
 - Edgar Miloš
 - Kasparas Murmokas
 - Mykyta Tishkin
 - Mark Andžejevski
 - Agilė Astapovičiūtė  
-
-## Tech stack:
-- Java 21
-
-# pot-summer-25
-## Authors
-- Edgar
-- Kasparas Murmokas
-- Mykyta Tishkin
-- Mark Andžejevski
-- Agilė Astapovičiūtė  
-
 
 <details><summary> API Draft</summary>
 
@@ -89,3 +77,6 @@ GET    /users/{id}/enrollments       # View enrollments for a specific user
 GET    /companies/{id}/enrollments   # View enrollments for a specific company
 ```
 </details>
+
+## Tech stack:
+- Java 21
