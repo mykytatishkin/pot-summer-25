@@ -14,7 +14,7 @@ https://api.ibta.com/v1
 
 ### Company Management
 ```
-GET    /companies                    # Get all companies / Search by name, country code, status
+GET    /companies                    # Get all companies / Search by name, country code, status, date
 POST   /companies                    # Create new company profile
 GET    /companies/{id}               # View company details
 PUT    /companies/{id}               # Update company profile
@@ -26,7 +26,7 @@ GET    /companies/{id}/claims        # View claims for a specific company
 
 ### User Management
 ```
-GET    /users                        # Get all users / Search by name, email, etc.
+GET    /users                        # Get all users / Search by name, email, ssn,, company id, status, date
 POST   /users                        # Create new user (company-level or consumer-level)
 GET    /users/{id}                   # View user details
 PUT    /users/{id}                   # Update user profile
@@ -40,7 +40,7 @@ GET    /users/{id}/claims            # View claims for a specific user
 
 ### Insurance Package Management 
 ```
-GET    /packages                     # Get all packages / Search packages by name, dates, status, etc.
+GET    /packages                     # Get all packages / Search packages by company id, dates, status
 POST   /packages                     # Create new insurance package
 GET    /packages/{id}                # View package details
 PUT    /packages/{id}                # Update package (if not active)
@@ -49,7 +49,7 @@ DELETE /packages/{id}                # Deactivate package, here can be PATCH ins
 
 ### Claims Management
 ```
-GET    /claims                       # Get all claims / Search claims by claim number, user, company, etc.
+GET    /claims                       # Get all claims / Search claims by claim number, user id, company id, status, date
 POST   /claims                       # Create a claim
 GET    /claims/{id}                  # View claim details
 POST   /claims/{id}/approval         # Approve claim
@@ -59,7 +59,7 @@ PUT    /claims/{id}                  # Update claim information
 
 ### Enrollments
 ```
-GET    /enrollments                  # Search enrollments
+GET    /enrollments                  # Search enrollments by user id, company id, package id, status, date
 POST   /enrollments                  # Create enrollment
 GET    /enrollments/{id}             # Get enrollment by ID
 PUT    /enrollments/{id}             # Update enrollment
@@ -70,7 +70,7 @@ GET    /companies/{id}/enrollments   # Get enrollments for company
 
 ### Benefit Package Management
 ```
-GET    /benefits                     # Get all benefits / Search benefit packages
+GET    /benefits                     # Get all benefits packages
 POST   /benefits                     # Create benefit package
 GET    /benefits/{id}                # View benefit package details
 PUT    /benefits/{id}                # Update benefit package
