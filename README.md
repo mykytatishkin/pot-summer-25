@@ -22,11 +22,12 @@ DELETE /companies/{id}               # Deactivate company
 GET    /companies/{id}/users         # View users for a specific company
 GET    /companies/{id}/packages      # View packages for a specific company
 GET    /companies/{id}/claims        # View claims for a specific company
+GET    /companies/{id}/enrollments   # Get enrollments for company
 ```
 
 ### User Management
 ```
-GET    /users                        # Get all users / Search by name, email, ssn,, company id, status, date
+GET    /users                        # Get all users / Search by name, email, ssn,, company_id, status, date
 POST   /users                        # Create new user (company-level or consumer-level)
 GET    /users/{id}                   # View user details
 PUT    /users/{id}                   # Update user profile
@@ -36,11 +37,12 @@ PUT    /users/{id}/roles             # Update user roles
 GET    /users/{id}/functions         # View user functions
 PUT    /users/{id}/functions         # Update user functions
 GET    /users/{id}/claims            # View claims for a specific user
+GET    /users/{id}/enrollments       # Get enrollments for user
 ```
 
 ### Insurance Package Management 
 ```
-GET    /packages                     # Get all packages / Search packages by company id, dates, status
+GET    /packages                     # Get all packages / Search packages by company_id, dates, status
 POST   /packages                     # Create new insurance package
 GET    /packages/{id}                # View package details
 PUT    /packages/{id}                # Update package (if not active)
@@ -49,7 +51,7 @@ DELETE /packages/{id}                # Deactivate package, here can be PATCH ins
 
 ### Claims Management
 ```
-GET    /claims                       # Get all claims / Search claims by claim number, user id, company id, status, date
+GET    /claims                       # Get all claims / Search claims by claim number, user_id, company_id, status, date
 POST   /claims                       # Create a claim
 GET    /claims/{id}                  # View claim details
 POST   /claims/{id}/approval         # Approve claim
@@ -59,13 +61,11 @@ PUT    /claims/{id}                  # Update claim information
 
 ### Enrollments
 ```
-GET    /enrollments                  # Search enrollments by user id, company id, package id, status, date
+GET    /enrollments                  # Search enrollments by user_id, company_id, package_id, status, date
 POST   /enrollments                  # Create enrollment
 GET    /enrollments/{id}             # Get enrollment by ID
 PUT    /enrollments/{id}             # Update enrollment
 DELETE /enrollments/{id}             # Cancel enrollment
-GET    /users/{id}/enrollments       # Get enrollments for user
-GET    /companies/{id}/enrollments   # Get enrollments for company
 ```
 
 ### Benefit Package Management
@@ -929,7 +929,6 @@ Common HTTP Status Codes:
     }
   ],
   "total": 100,
-  "page": 1,
   "size": 20
 }
 ```
@@ -973,7 +972,6 @@ Common HTTP Status Codes:
     }
   ],
   "total": 100,
-  "page": 1,
   "size": 20
 }
 ```
@@ -1006,7 +1004,6 @@ Common HTTP Status Codes:
     }
   ],
   "total": 100,
-  "page": 1,
   "size": 20
 }
 ```
