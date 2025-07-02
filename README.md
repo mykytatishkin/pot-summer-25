@@ -7,6 +7,7 @@
 - Agilė Astapovičiūtė  
 
 <details><summary> API Draft</summary>
+
 ## Base URL
 ```
 https://api.ibta.com/v1
