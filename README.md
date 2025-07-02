@@ -91,6 +91,7 @@ Common HTTP Status Codes:
 </details>
 
 <details><summary>APIs DTOs</summary>
+
 ## Detailed Endpoint Specifications
 
 ### Companies Endpoints
@@ -116,6 +117,7 @@ Common HTTP Status Codes:
       "email": "string",
       "website": "string",
       "status": "ACTIVE|INACTIVE",
+      "who_created": "uuid",
       "created_at": "datetime",
       "updated_at": "datetime"
     }
@@ -159,6 +161,7 @@ Common HTTP Status Codes:
   "email": "string",
   "website": "string",
   "status": "ACTIVE",
+  "who_created": "uuid",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
@@ -176,6 +179,7 @@ Common HTTP Status Codes:
   "email": "string",
   "website": "string",
   "status": "ACTIVE|INACTIVE",
+  "who_created": "uuid",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
@@ -205,6 +209,7 @@ Common HTTP Status Codes:
   "email": "string",
   "website": "string",
   "status": "ACTIVE|INACTIVE",
+  "who_created": "uuid",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
@@ -225,6 +230,8 @@ Common HTTP Status Codes:
       "date_of_birth": "date",
       "ssn": "string",
       "status": "ACTIVE|INACTIVE",
+      "company_id": "uuid",
+      "who_created": "uuid",
       "roles": ["string"],
       "created_at": "datetime"
     }
@@ -243,6 +250,8 @@ Common HTTP Status Codes:
     {
       "id": "uuid",
       "name": "string",
+      "company_id": "uuid",
+      "who_created": "uuid",
       "start_date": "date",
       "end_date": "date",
       "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
@@ -270,7 +279,9 @@ Common HTTP Status Codes:
       "description": "string",
       "status": "PENDING|APPROVED|DENIED",
       "submitted_date": "datetime",
-      "processed_date": "datetime"
+      "processed_date": "datetime",
+      "company_id": "uuid",
+      "who_created": "uuid"
     }
   ],
   "total": 100,
@@ -308,6 +319,7 @@ Common HTTP Status Codes:
       "ssn": "string",
       "status": "ACTIVE|INACTIVE",
       "company_id": "uuid",
+      "who_created": "uuid",
       "roles": ["string"],
       "created_at": "datetime",
       "updated_at": "datetime"
@@ -349,6 +361,7 @@ Common HTTP Status Codes:
   "ssn": "string",
   "status": "ACTIVE",
   "company_id": "uuid",
+  "who_created": "uuid",
   "roles": ["string"],
   "created_at": "datetime",
   "updated_at": "datetime"
@@ -498,6 +511,7 @@ Common HTTP Status Codes:
       "id": "uuid",
       "name": "string",
       "company_id": "uuid",
+      "who_created": "uuid",
       "start_date": "date",
       "end_date": "date",
       "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
@@ -530,6 +544,7 @@ Common HTTP Status Codes:
   "id": "uuid",
   "name": "string",
   "company_id": "uuid",
+  "who_created": "uuid",
   "start_date": "date",
   "end_date": "date",
   "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
@@ -546,6 +561,7 @@ Common HTTP Status Codes:
   "id": "uuid",
   "name": "string",
   "company_id": "uuid",
+  "who_created": "uuid",
   "start_date": "date",
   "end_date": "date",
   "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
@@ -572,6 +588,7 @@ Common HTTP Status Codes:
   "id": "uuid",
   "name": "string",
   "company_id": "uuid",
+  "who_created": "uuid",
   "start_date": "date",
   "end_date": "date",
   "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
@@ -603,6 +620,7 @@ Common HTTP Status Codes:
       "claim_number": "string",
       "user_id": "uuid",
       "company_id": "uuid",
+      "who_created": "uuid",
       "enrollment_id": "uuid",
       "type": "MEDICAL|PHARMACY|DENTAL|VISION",
       "amount": "decimal",
@@ -641,6 +659,7 @@ Common HTTP Status Codes:
   "claim_number": "string",
   "user_id": "uuid",
   "company_id": "uuid",
+  "who_created": "uuid",
   "enrollment_id": "uuid",
   "type": "MEDICAL|PHARMACY|DENTAL|VISION",
   "amount": "decimal",
@@ -659,6 +678,7 @@ Common HTTP Status Codes:
   "claim_number": "string",
   "user_id": "uuid",
   "company_id": "uuid",
+  "who_created": "uuid",
   "enrollment_id": "uuid",
   "type": "MEDICAL|PHARMACY|DENTAL|VISION",
   "amount": "decimal",
@@ -742,6 +762,7 @@ Common HTTP Status Codes:
   "claim_number": "string",
   "user_id": "uuid",
   "company_id": "uuid",
+  "who_created": "uuid",
   "enrollment_id": "uuid",
   "type": "MEDICAL|PHARMACY|DENTAL|VISION",
   "amount": "decimal",
@@ -771,7 +792,9 @@ Common HTTP Status Codes:
       "submitted_date": "datetime",
       "processed_date": "datetime",
       "approved_amount": "decimal",
-      "denied_reason": "string"
+      "denied_reason": "string",
+      "company_id": "uuid",
+      "who_created": "uuid"
     }
   ],
   "total": 100,
@@ -802,7 +825,9 @@ Common HTTP Status Codes:
       "deductible_amount": "decimal",
       "max_benefit_amount": "decimal",
       "created_at": "datetime",
-      "updated_at": "datetime"
+      "updated_at": "datetime",
+      "company_id": "uuid",
+      "who_created": "uuid"
     }
   ],
   "total": 100,
@@ -894,7 +919,9 @@ Common HTTP Status Codes:
       "type": "MEDICAL|DENTAL|VISION|PHARMACY|LIFE|DISABILITY",
       "coverage_percentage": "decimal",
       "deductible_amount": "decimal",
-      "max_benefit_amount": "decimal"
+      "max_benefit_amount": "decimal",
+      "company_id": "uuid",
+      "who_created": "uuid"
     }
   ]
 }
@@ -925,7 +952,8 @@ Common HTTP Status Codes:
       "status": "ACTIVE|INACTIVE|PENDING",
       "effective_date": "date",
       "end_date": "date",
-      "created_at": "datetime"
+      "created_at": "datetime",
+      "who_created": "uuid"
     }
   ],
   "total": 100,
@@ -947,7 +975,8 @@ Common HTTP Status Codes:
   "effective_date": "date",
   "end_date": "date",
   "created_at": "datetime",
-  "updated_at": "datetime"
+  "updated_at": "datetime",
+  "who_created": "uuid"
 }
 ```
 
@@ -967,7 +996,9 @@ Common HTTP Status Codes:
       "package": {
         "id": "uuid",
         "name": "string",
-        "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY"
+        "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
+        "company_id": "uuid",
+        "who_created": "uuid"
       }
     }
   ],
@@ -999,7 +1030,9 @@ Common HTTP Status Codes:
       "package": {
         "id": "uuid",
         "name": "string",
-        "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY"
+        "payroll_frequency": "WEEKLY|BIWEEKLY|MONTHLY",
+        "company_id": "uuid",
+        "who_created": "uuid"
       }
     }
   ],
