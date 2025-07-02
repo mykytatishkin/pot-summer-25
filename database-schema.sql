@@ -11,8 +11,10 @@ CREATE TABLE companies (
     email VARCHAR(255),
     website VARCHAR(255),
     status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Users table
@@ -27,9 +29,11 @@ CREATE TABLE users (
     ssn VARCHAR(11) UNIQUE NOT NULL,
     company_id UUID NOT NULL,
     status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies(id)
+    FOREIGN KEY (company_id) REFERENCES companies(id),
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Roles table
@@ -37,17 +41,21 @@ CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    who_created UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- User roles junction table
 CREATE TABLE user_roles (
     user_id UUID NOT NULL,
     role_id UUID NOT NULL,
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, role_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Insurance packages table
@@ -59,9 +67,11 @@ CREATE TABLE insurance_packages (
     end_date DATE NOT NULL,
     payroll_frequency VARCHAR(20) NOT NULL CHECK (payroll_frequency IN ('WEEKLY', 'BIWEEKLY', 'MONTHLY')),
     status VARCHAR(20) DEFAULT 'INITIALIZED' CHECK (status IN ('INITIALIZED', 'ACTIVE', 'INACTIVE')),
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies(id)
+    FOREIGN KEY (company_id) REFERENCES companies(id),
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Benefit packages table
@@ -73,18 +83,22 @@ CREATE TABLE benefit_packages (
     coverage_percentage DECIMAL(5,2),
     deductible_amount DECIMAL(10,2),
     max_benefit_amount DECIMAL(10,2),
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Package benefits junction table
 CREATE TABLE package_benefits (
     package_id UUID NOT NULL,
     benefit_id UUID NOT NULL,
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (package_id, benefit_id),
     FOREIGN KEY (package_id) REFERENCES insurance_packages(id) ON DELETE CASCADE,
-    FOREIGN KEY (benefit_id) REFERENCES benefit_packages(id) ON DELETE CASCADE
+    FOREIGN KEY (benefit_id) REFERENCES benefit_packages(id) ON DELETE CASCADE,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Enrollments table
@@ -98,11 +112,13 @@ CREATE TABLE enrollments (
     status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('ACTIVE', 'INACTIVE', 'PENDING')),
     effective_date DATE NOT NULL,
     end_date DATE,
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (company_id) REFERENCES companies(id),
-    FOREIGN KEY (package_id) REFERENCES insurance_packages(id)
+    FOREIGN KEY (package_id) REFERENCES insurance_packages(id),
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Claims table
@@ -121,11 +137,13 @@ CREATE TABLE claims (
     approved_amount DECIMAL(10,2),
     denied_reason TEXT,
     notes TEXT,
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (company_id) REFERENCES companies(id),
-    FOREIGN KEY (enrollment_id) REFERENCES enrollments(id)
+    FOREIGN KEY (enrollment_id) REFERENCES enrollments(id),
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Claim attachments table
@@ -136,8 +154,10 @@ CREATE TABLE claim_attachments (
     file_path VARCHAR(500) NOT NULL,
     file_size BIGINT NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
+    who_created UUID,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (claim_id) REFERENCES claims(id) ON DELETE CASCADE
+    FOREIGN KEY (claim_id) REFERENCES claims(id) ON DELETE CASCADE,
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Audit log table
@@ -151,8 +171,10 @@ CREATE TABLE audit_logs (
     new_values JSONB,
     ip_address VARCHAR(45),
     user_agent TEXT,
+    who_created UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (who_created) REFERENCES users(id)
 );
 
 -- Create indexes for better performance
@@ -160,6 +182,7 @@ CREATE INDEX idx_companies_name ON companies(name);
 CREATE INDEX idx_companies_country_code ON companies(country_code);
 CREATE INDEX idx_companies_status ON companies(status);
 CREATE INDEX idx_companies_created_at ON companies(created_at);
+CREATE INDEX idx_companies_who_created ON companies(who_created);
 
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
@@ -167,11 +190,21 @@ CREATE INDEX idx_users_ssn ON users(ssn);
 CREATE INDEX idx_users_company_id ON users(company_id);
 CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX idx_users_who_created ON users(who_created);
+
+CREATE INDEX idx_roles_who_created ON roles(who_created);
+
+CREATE INDEX idx_user_roles_who_created ON user_roles(who_created);
 
 CREATE INDEX idx_packages_company_id ON insurance_packages(company_id);
 CREATE INDEX idx_packages_status ON insurance_packages(status);
 CREATE INDEX idx_packages_dates ON insurance_packages(start_date, end_date);
 CREATE INDEX idx_packages_created_at ON insurance_packages(created_at);
+CREATE INDEX idx_packages_who_created ON insurance_packages(who_created);
+
+CREATE INDEX idx_benefit_packages_who_created ON benefit_packages(who_created);
+
+CREATE INDEX idx_package_benefits_who_created ON package_benefits(who_created);
 
 CREATE INDEX idx_claims_claim_number ON claims(claim_number);
 CREATE INDEX idx_claims_user_id ON claims(user_id);
@@ -179,18 +212,23 @@ CREATE INDEX idx_claims_company_id ON claims(company_id);
 CREATE INDEX idx_claims_status ON claims(status);
 CREATE INDEX idx_claims_submitted_date ON claims(submitted_date);
 CREATE INDEX idx_claims_created_at ON claims(created_at);
+CREATE INDEX idx_claims_who_created ON claims(who_created);
 
 CREATE INDEX idx_enrollments_user_id ON enrollments(user_id);
 CREATE INDEX idx_enrollments_company_id ON enrollments(company_id);
 CREATE INDEX idx_enrollments_package_id ON enrollments(package_id);
 CREATE INDEX idx_enrollments_status ON enrollments(status);
 CREATE INDEX idx_enrollments_created_at ON enrollments(created_at);
+CREATE INDEX idx_enrollments_who_created ON enrollments(who_created);
 
 CREATE INDEX idx_attachments_claim_id ON claim_attachments(claim_id);
+CREATE INDEX idx_attachments_who_created ON claim_attachments(who_created);
+
 CREATE INDEX idx_audit_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_action ON audit_logs(action);
 CREATE INDEX idx_audit_table_name ON audit_logs(table_name);
 CREATE INDEX idx_audit_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_who_created ON audit_logs(who_created);
 
 -- Insert default roles
 INSERT INTO roles (id, name, description) VALUES
