@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Company Status Enum Tests")
-class CompanyStatusTest {
+class CompanyStatusEnumTest {
 
     @Test
     @DisplayName("Should have correct enum values")
