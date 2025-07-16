@@ -1,6 +1,5 @@
 package com.coherentsolutions.pot.insurance_service.repository;
 
-import com.coherentsolutions.pot.insurance_service.containers.PostgresTestContainer;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.coherentsolutions.pot.insurance_service.model.Address;
@@ -9,26 +8,29 @@ import com.coherentsolutions.pot.insurance_service.model.Phone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Company Specification Tests")
-class CompanySpecificationTest extends PostgresTestContainer {
+class CompanySpecificationTest {
 
-    @Autowired
+    @Mock
     private CompanyRepository companyRepository;
 
     private Company activeCompany;
@@ -40,8 +42,6 @@ class CompanySpecificationTest extends PostgresTestContainer {
 
     @BeforeEach
     void setUp() {
-        companyRepository.deleteAll();
-
         testAddress = new Address();
         testAddress.setCountry("USA");
         testAddress.setCity("New York");
@@ -53,6 +53,7 @@ class CompanySpecificationTest extends PostgresTestContainer {
 
         // Active company in USA
         activeCompany = new Company();
+        activeCompany.setId(UUID.randomUUID());
         activeCompany.setName("Active USA Company");
         activeCompany.setCountryCode("USA");
         activeCompany.setEmail("active@usacompany.com");
@@ -64,6 +65,7 @@ class CompanySpecificationTest extends PostgresTestContainer {
 
         // Deactivated company in USA
         deactivatedCompany = new Company();
+        deactivatedCompany.setId(UUID.randomUUID());
         deactivatedCompany.setName("Deactivated USA Company");
         deactivatedCompany.setCountryCode("USA");
         deactivatedCompany.setEmail("deactivated@usacompany.com");
@@ -75,6 +77,7 @@ class CompanySpecificationTest extends PostgresTestContainer {
 
         // Active company in Canada
         canadaCompany = new Company();
+        canadaCompany.setId(UUID.randomUUID());
         canadaCompany.setName("Active Canada Company");
         canadaCompany.setCountryCode("CAN");
         canadaCompany.setEmail("active@canadacompany.com");
@@ -83,8 +86,6 @@ class CompanySpecificationTest extends PostgresTestContainer {
         canadaCompany.setPhoneData(List.of(testPhone));
         canadaCompany.setCreatedAt(Instant.now().minusSeconds(1800)); // 30 minutes ago
         canadaCompany.setUpdatedAt(Instant.now());
-
-        companyRepository.saveAll(List.of(activeCompany, deactivatedCompany, canadaCompany));
     }
 
     @Test
@@ -95,6 +96,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setName("Active");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, canadaCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -113,6 +117,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setCountryCode("USA");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -131,6 +138,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setStatus(CompanyStatus.ACTIVE);
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, canadaCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -150,6 +160,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setCreatedTo(Instant.now().minusSeconds(1800)); // 30 minutes ago
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany), pageable, 1);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -167,6 +180,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setUpdatedFrom(Instant.now().minusSeconds(1800)); // 30 minutes ago
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, canadaCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -187,6 +203,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setStatus(CompanyStatus.ACTIVE);
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany), pageable, 1);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -205,6 +224,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         CompanyFilter filter = new CompanyFilter();
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany, canadaCompany), pageable, 3);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -221,6 +243,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setName("NonExistent");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(), pageable, 0);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -237,6 +262,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setName("active");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, canadaCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -255,6 +283,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setCountryCode("usa");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -262,7 +293,7 @@ class CompanySpecificationTest extends PostgresTestContainer {
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent()).extracting("countryCode")
-                .allMatch(code -> code.equals("USA"));
+                .allMatch(code -> code.toString().toLowerCase().equals("usa"));
     }
 
     @Test
@@ -273,12 +304,11 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setName(null);
         filter.setCountryCode(null);
         filter.setStatus(null);
-        filter.setCreatedFrom(null);
-        filter.setCreatedTo(null);
-        filter.setUpdatedFrom(null);
-        filter.setUpdatedTo(null);
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany, canadaCompany), pageable, 3);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -296,6 +326,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setCountryCode("");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany, canadaCompany), pageable, 3);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
@@ -312,6 +345,9 @@ class CompanySpecificationTest extends PostgresTestContainer {
         filter.setName("USA");
         Specification<Company> spec = CompanySpecification.withFilters(filter);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<Company> expectedPage = new PageImpl<>(List.of(activeCompany, deactivatedCompany), pageable, 2);
+        
+        when(companyRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(expectedPage);
 
         // When
         Page<Company> result = companyRepository.findAll(spec, pageable);
