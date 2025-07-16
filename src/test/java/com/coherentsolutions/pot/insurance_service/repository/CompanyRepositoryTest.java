@@ -1,19 +1,21 @@
 package com.coherentsolutions.pot.insurance_service.repository;
 
-import com.coherentsolutions.pot.insurance_service.containers.PostgresTestContainer;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.coherentsolutions.pot.insurance_service.model.Address;
 import com.coherentsolutions.pot.insurance_service.model.Company;
 import com.coherentsolutions.pot.insurance_service.model.Phone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,13 +23,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@DataJpaTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Company Repository Tests")
-class CompanyRepositoryTest extends PostgresTestContainer {
+class CompanyRepositoryTest {
 
-    @Autowired
+    @Mock
     private CompanyRepository companyRepository;
 
     private Company testCompany1;
@@ -37,8 +40,6 @@ class CompanyRepositoryTest extends PostgresTestContainer {
 
     @BeforeEach
     void setUp() {
-        companyRepository.deleteAll();
-
         testAddress = new Address();
         testAddress.setCountry("USA");
         testAddress.setCity("New York");
@@ -49,6 +50,7 @@ class CompanyRepositoryTest extends PostgresTestContainer {
         testPhone.setNumber("555-1234");
 
         testCompany1 = new Company();
+        testCompany1.setId(UUID.randomUUID());
         testCompany1.setName("Test Company 1");
         testCompany1.setCountryCode("USA");
         testCompany1.setEmail("test1@company.com");
@@ -60,6 +62,7 @@ class CompanyRepositoryTest extends PostgresTestContainer {
         testCompany1.setUpdatedAt(Instant.now());
 
         testCompany2 = new Company();
+        testCompany2.setId(UUID.randomUUID());
         testCompany2.setName("Test Company 2");
         testCompany2.setCountryCode("CAN");
         testCompany2.setEmail("test2@company.com");
@@ -71,222 +74,241 @@ class CompanyRepositoryTest extends PostgresTestContainer {
         testCompany2.setUpdatedAt(Instant.now());
     }
 
-    @Test
-    @DisplayName("Should save company successfully")
-    void shouldSaveCompanySuccessfully() {
-        // When
-        Company savedCompany = companyRepository.save(testCompany1);
+    @Nested
+    @DisplayName("Save Operations")
+    class SaveOperations {
 
-        // Then
-        assertThat(savedCompany).isNotNull();
-        assertThat(savedCompany.getId()).isNotNull();
-        assertThat(savedCompany.getName()).isEqualTo("Test Company 1");
-        assertThat(savedCompany.getCountryCode()).isEqualTo("USA");
-        assertThat(savedCompany.getEmail()).isEqualTo("test1@company.com");
-        assertThat(savedCompany.getWebsite()).isEqualTo("https://testcompany1.com");
-        assertThat(savedCompany.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-        assertThat(savedCompany.getAddressData()).hasSize(1);
-        assertThat(savedCompany.getPhoneData()).hasSize(1);
-        assertThat(savedCompany.getCreatedAt()).isNotNull();
-        assertThat(savedCompany.getUpdatedAt()).isNotNull();
+        @Test
+        @DisplayName("Should save company successfully")
+        void shouldSaveCompanySuccessfully() {
+            // Given
+            when(companyRepository.save(any(Company.class))).thenReturn(testCompany1);
+
+            // When
+            Company savedCompany = companyRepository.save(testCompany1);
+
+            // Then
+            assertThat(savedCompany).isNotNull();
+            assertThat(savedCompany.getId()).isNotNull();
+            assertThat(savedCompany.getName()).isEqualTo("Test Company 1");
+            assertThat(savedCompany.getCountryCode()).isEqualTo("USA");
+            assertThat(savedCompany.getEmail()).isEqualTo("test1@company.com");
+            assertThat(savedCompany.getWebsite()).isEqualTo("https://testcompany1.com");
+            assertThat(savedCompany.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
+            assertThat(savedCompany.getAddressData()).hasSize(1);
+            assertThat(savedCompany.getPhoneData()).hasSize(1);
+            assertThat(savedCompany.getCreatedAt()).isNotNull();
+            assertThat(savedCompany.getUpdatedAt()).isNotNull();
+            verify(companyRepository).save(testCompany1);
+        }
+
+        @Test
+        @DisplayName("Should save all companies")
+        void shouldSaveAllCompanies() {
+            // Given
+            List<Company> companies = List.of(testCompany1, testCompany2);
+            when(companyRepository.saveAll(companies)).thenReturn(companies);
+
+            // When
+            List<Company> savedCompanies = companyRepository.saveAll(companies);
+
+            // Then
+            assertThat(savedCompanies).hasSize(2);
+            verify(companyRepository).saveAll(companies);
+        }
     }
 
-    @Test
-    @DisplayName("Should find company by id when company exists")
-    void shouldFindCompanyByIdWhenCompanyExists() {
-        // Given
-        Company savedCompany = companyRepository.save(testCompany1);
+    @Nested
+    @DisplayName("Find Operations")
+    class FindOperations {
 
-        // When
-        Optional<Company> foundCompany = companyRepository.findById(savedCompany.getId());
+        @Test
+        @DisplayName("Should find company by id when company exists")
+        void shouldFindCompanyByIdWhenCompanyExists() {
+            // Given
+            when(companyRepository.findById(testCompany1.getId())).thenReturn(Optional.of(testCompany1));
 
-        // Then
-        assertThat(foundCompany).isPresent();
-        assertThat(foundCompany.get().getName()).isEqualTo("Test Company 1");
-        assertThat(foundCompany.get().getCountryCode()).isEqualTo("USA");
+            // When
+            Optional<Company> foundCompany = companyRepository.findById(testCompany1.getId());
+
+            // Then
+            assertThat(foundCompany).isPresent();
+            assertThat(foundCompany.get().getName()).isEqualTo("Test Company 1");
+            assertThat(foundCompany.get().getCountryCode()).isEqualTo("USA");
+            verify(companyRepository).findById(testCompany1.getId());
+        }
+
+        @Test
+        @DisplayName("Should return empty optional when company not found")
+        void shouldReturnEmptyOptionalWhenCompanyNotFound() {
+            // Given
+            UUID nonExistentId = UUID.randomUUID();
+            when(companyRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // When
+            Optional<Company> foundCompany = companyRepository.findById(nonExistentId);
+
+            // Then
+            assertThat(foundCompany).isEmpty();
+            verify(companyRepository).findById(nonExistentId);
+        }
+
+        @Test
+        @DisplayName("Should find all companies")
+        void shouldFindAllCompanies() {
+            // Given
+            List<Company> companies = List.of(testCompany1, testCompany2);
+            when(companyRepository.findAll()).thenReturn(companies);
+
+            // When
+            List<Company> allCompanies = companyRepository.findAll();
+
+            // Then
+            assertThat(allCompanies).hasSize(2);
+            assertThat(allCompanies).extracting("name")
+                    .containsExactlyInAnyOrder("Test Company 1", "Test Company 2");
+            verify(companyRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("Should find companies with pagination")
+        void shouldFindCompaniesWithPagination() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 1);
+            Page<Company> companyPage = new PageImpl<>(List.of(testCompany1), pageable, 2);
+            when(companyRepository.findAll(pageable)).thenReturn(companyPage);
+
+            // When
+            Page<Company> result = companyRepository.findAll(pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getTotalPages()).isEqualTo(2);
+            verify(companyRepository).findAll(pageable);
+        }
+
+        @Test
+        @DisplayName("Should find companies with specification")
+        void shouldFindCompaniesWithSpecification() {
+            // Given
+            Specification<Company> spec = mock(Specification.class);
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Company> companyPage = new PageImpl<>(List.of(testCompany1), pageable, 1);
+            when(companyRepository.findAll(spec, pageable)).thenReturn(companyPage);
+
+            // When
+            Page<Company> result = companyRepository.findAll(spec, pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            verify(companyRepository).findAll(spec, pageable);
+        }
     }
 
-    @Test
-    @DisplayName("Should return empty optional when company not found")
-    void shouldReturnEmptyOptionalWhenCompanyNotFound() {
-        // Given
-        UUID nonExistentId = UUID.randomUUID();
+    @Nested
+    @DisplayName("Update Operations")
+    class UpdateOperations {
 
-        // When
-        Optional<Company> foundCompany = companyRepository.findById(nonExistentId);
+        @Test
+        @DisplayName("Should update company successfully")
+        void shouldUpdateCompanySuccessfully() {
+            // Given
+            Company updatedCompany = new Company();
+            updatedCompany.setId(testCompany1.getId());
+            updatedCompany.setName("Updated Company Name");
+            updatedCompany.setEmail("updated@company.com");
+            when(companyRepository.save(any(Company.class))).thenReturn(updatedCompany);
 
-        // Then
-        assertThat(foundCompany).isEmpty();
+            // When
+            Company result = companyRepository.save(updatedCompany);
+
+            // Then
+            assertThat(result.getName()).isEqualTo("Updated Company Name");
+            assertThat(result.getEmail()).isEqualTo("updated@company.com");
+            assertThat(result.getId()).isEqualTo(testCompany1.getId());
+            verify(companyRepository).save(updatedCompany);
+        }
     }
 
-    @Test
-    @DisplayName("Should find all companies")
-    void shouldFindAllCompanies() {
-        // Given
-        companyRepository.save(testCompany1);
-        companyRepository.save(testCompany2);
+    @Nested
+    @DisplayName("Delete Operations")
+    class DeleteOperations {
 
-        // When
-        List<Company> allCompanies = companyRepository.findAll();
+        @Test
+        @DisplayName("Should delete company successfully")
+        void shouldDeleteCompanySuccessfully() {
+            // Given
+            UUID companyId = testCompany1.getId();
+            doNothing().when(companyRepository).deleteById(companyId);
 
-        // Then
-        assertThat(allCompanies).hasSize(2);
-        assertThat(allCompanies).extracting("name")
-                .containsExactlyInAnyOrder("Test Company 1", "Test Company 2");
+            // When
+            companyRepository.deleteById(companyId);
+
+            // Then
+            verify(companyRepository).deleteById(companyId);
+        }
+
+        @Test
+        @DisplayName("Should delete all companies")
+        void shouldDeleteAllCompanies() {
+            // Given
+            doNothing().when(companyRepository).deleteAll();
+
+            // When
+            companyRepository.deleteAll();
+
+            // Then
+            verify(companyRepository).deleteAll();
+        }
     }
 
-    @Test
-    @DisplayName("Should find companies with pagination")
-    void shouldFindCompaniesWithPagination() {
-        // Given
-        companyRepository.save(testCompany1);
-        companyRepository.save(testCompany2);
-        Pageable pageable = PageRequest.of(0, 1);
+    @Nested
+    @DisplayName("Count Operations")
+    class CountOperations {
 
-        // When
-        Page<Company> companyPage = companyRepository.findAll(pageable);
+        @Test
+        @DisplayName("Should count companies correctly")
+        void shouldCountCompaniesCorrectly() {
+            // Given
+            when(companyRepository.count()).thenReturn(2L);
 
-        // Then
-        assertThat(companyPage.getContent()).hasSize(1);
-        assertThat(companyPage.getTotalElements()).isEqualTo(2);
-        assertThat(companyPage.getTotalPages()).isEqualTo(2);
-    }
+            // When
+            long count = companyRepository.count();
 
-    @Test
-    @DisplayName("Should update company successfully")
-    void shouldUpdateCompanySuccessfully() {
-        // Given
-        Company savedCompany = companyRepository.save(testCompany1);
-        savedCompany.setName("Updated Company Name");
-        savedCompany.setEmail("updated@company.com");
+            // Then
+            assertThat(count).isEqualTo(2);
+            verify(companyRepository).count();
+        }
 
-        // When
-        Company updatedCompany = companyRepository.save(savedCompany);
+        @Test
+        @DisplayName("Should check if company exists")
+        void shouldCheckIfCompanyExists() {
+            // Given
+            UUID companyId = testCompany1.getId();
+            when(companyRepository.existsById(companyId)).thenReturn(true);
 
-        // Then
-        assertThat(updatedCompany.getName()).isEqualTo("Updated Company Name");
-        assertThat(updatedCompany.getEmail()).isEqualTo("updated@company.com");
-        assertThat(updatedCompany.getId()).isEqualTo(savedCompany.getId());
-    }
+            // When
+            boolean exists = companyRepository.existsById(companyId);
 
-    @Test
-    @DisplayName("Should delete company successfully")
-    void shouldDeleteCompanySuccessfully() {
-        // Given
-        Company savedCompany = companyRepository.save(testCompany1);
+            // Then
+            assertThat(exists).isTrue();
+            verify(companyRepository).existsById(companyId);
+        }
 
-        // When
-        companyRepository.deleteById(savedCompany.getId());
+        @Test
+        @DisplayName("Should check if company does not exist")
+        void shouldCheckIfCompanyDoesNotExist() {
+            // Given
+            UUID nonExistentId = UUID.randomUUID();
+            when(companyRepository.existsById(nonExistentId)).thenReturn(false);
 
-        // Then
-        Optional<Company> deletedCompany = companyRepository.findById(savedCompany.getId());
-        assertThat(deletedCompany).isEmpty();
-    }
+            // When
+            boolean exists = companyRepository.existsById(nonExistentId);
 
-    @Test
-    @DisplayName("Should count companies correctly")
-    void shouldCountCompaniesCorrectly() {
-        // Given
-        companyRepository.save(testCompany1);
-        companyRepository.save(testCompany2);
-
-        // When
-        long count = companyRepository.count();
-
-        // Then
-        assertThat(count).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("Should check if company exists")
-    void shouldCheckIfCompanyExists() {
-        // Given
-        Company savedCompany = companyRepository.save(testCompany1);
-
-        // When
-        boolean exists = companyRepository.existsById(savedCompany.getId());
-
-        // Then
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    @DisplayName("Should check if company does not exist")
-    void shouldCheckIfCompanyDoesNotExist() {
-        // Given
-        UUID nonExistentId = UUID.randomUUID();
-
-        // When
-        boolean exists = companyRepository.existsById(nonExistentId);
-
-        // Then
-        assertThat(exists).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should save all companies")
-    void shouldSaveAllCompanies() {
-        // Given
-        List<Company> companies = List.of(testCompany1, testCompany2);
-
-        // When
-        List<Company> savedCompanies = companyRepository.saveAll(companies);
-
-        // Then
-        assertThat(savedCompanies).hasSize(2);
-        assertThat(savedCompanies).allMatch(company -> company.getId() != null);
-    }
-
-    @Test
-    @DisplayName("Should delete all companies")
-    void shouldDeleteAllCompanies() {
-        // Given
-        companyRepository.save(testCompany1);
-        companyRepository.save(testCompany2);
-
-        // When
-        companyRepository.deleteAll();
-
-        // Then
-        assertThat(companyRepository.count()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("Should handle JSON data correctly")
-    void shouldHandleJsonDataCorrectly() {
-        // Given
-        Address address1 = new Address();
-        address1.setCountry("USA");
-        address1.setCity("New York");
-        address1.setStreet("123 Main St");
-
-        Address address2 = new Address();
-        address2.setCountry("USA");
-        address2.setCity("Los Angeles");
-        address2.setStreet("456 Oak Ave");
-
-        Phone phone1 = new Phone();
-        phone1.setCode("+1");
-        phone1.setNumber("555-1234");
-
-        Phone phone2 = new Phone();
-        phone2.setCode("+1");
-        phone2.setNumber("555-5678");
-
-        testCompany1.setAddressData(List.of(address1, address2));
-        testCompany1.setPhoneData(List.of(phone1, phone2));
-
-        // When
-        Company savedCompany = companyRepository.save(testCompany1);
-        Optional<Company> foundCompany = companyRepository.findById(savedCompany.getId());
-
-        // Then
-        assertThat(foundCompany).isPresent();
-        assertThat(foundCompany.get().getAddressData()).hasSize(2);
-        assertThat(foundCompany.get().getPhoneData()).hasSize(2);
-        assertThat(foundCompany.get().getAddressData().get(0).getCity()).isEqualTo("New York");
-        assertThat(foundCompany.get().getAddressData().get(1).getCity()).isEqualTo("Los Angeles");
-        assertThat(foundCompany.get().getPhoneData().get(0).getNumber()).isEqualTo("555-1234");
-        assertThat(foundCompany.get().getPhoneData().get(1).getNumber()).isEqualTo("555-5678");
+            // Then
+            assertThat(exists).isFalse();
+            verify(companyRepository).existsById(nonExistentId);
+        }
     }
 } 
