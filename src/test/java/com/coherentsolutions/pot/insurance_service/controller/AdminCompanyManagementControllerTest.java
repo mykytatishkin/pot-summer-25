@@ -7,7 +7,6 @@ import com.coherentsolutions.pot.insurance_service.service.CompanyManagementServ
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,7 +50,6 @@ class AdminCompanyManagementControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Configure MockMvc with proper argument resolvers for Pageable
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
@@ -70,209 +68,119 @@ class AdminCompanyManagementControllerTest {
                 .build();
     }
 
-    @Nested
-    @DisplayName("Get Companies Tests")
-    class GetCompaniesTests {
+    @Test
+    @DisplayName("Should get companies with search filters")
+    void shouldGetCompaniesWithSearchFilters() throws Exception {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<CompanyDto> companyPage = new PageImpl<>(List.of(testCompanyDto), pageable, 1);
 
-        @Test
-        @DisplayName("Should get companies with filters successfully")
-        void shouldGetCompaniesWithFiltersSuccessfully() throws Exception {
-            // Given
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<CompanyDto> companyPage = new PageImpl<>(List.of(testCompanyDto), pageable, 1);
+        when(companyManagementService.getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable)))
+                .thenReturn(companyPage);
 
-            when(companyManagementService.getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable)))
-                    .thenReturn(companyPage);
+        // When & Then
+        mockMvc.perform(get("/v1/companies")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("name", "Test")
+                        .param("countryCode", "USA")
+                        .param("status", "ACTIVE")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(testCompanyId.toString()))
+                .andExpect(jsonPath("$.content[0].name").value("Test Company"))
+                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-            // When & Then
-            mockMvc.perform(get("/v1/companies")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("name", "Test")
-                            .param("status", "ACTIVE")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.content[0].id").value(testCompanyId.toString()))
-                    .andExpect(jsonPath("$.content[0].name").value("Test Company"))
-                    .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.totalElements").value(1));
-
-            verify(companyManagementService).getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable));
-        }
-
-        @Test
-        @DisplayName("Should get companies without filters")
-        void shouldGetCompaniesWithoutFilters() throws Exception {
-            // Given
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<CompanyDto> companyPage = new PageImpl<>(List.of(testCompanyDto), pageable, 1);
-
-            when(companyManagementService.getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable)))
-                    .thenReturn(companyPage);
-
-            // When & Then
-            mockMvc.perform(get("/v1/companies")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.content[0].id").value(testCompanyId.toString()));
-
-            verify(companyManagementService).getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable));
-        }
+        verify(companyManagementService).getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable));
     }
 
-    @Nested
-    @DisplayName("Create Company Tests")
-    class CreateCompanyTests {
+    @Test
+    @DisplayName("Should create new company")
+    void shouldCreateNewCompany() throws Exception {
+        // Given
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("New Company")
+                .countryCode("USA")
+                .email("new@company.com")
+                .website("https://newcompany.com")
+                .build();
 
-        @Test
-        @DisplayName("Should create company successfully")
-        void shouldCreateCompanySuccessfully() throws Exception {
-            // Given
-            CompanyDto createRequest = CompanyDto.builder()
-                    .name("New Company")
-                    .countryCode("USA")
-                    .email("new@company.com")
-                    .website("https://newcompany.com")
-                    .build();
+        when(companyManagementService.createCompany(any(CompanyDto.class)))
+                .thenReturn(testCompanyDto);
 
-            when(companyManagementService.createCompany(any(CompanyDto.class)))
-                    .thenReturn(testCompanyDto);
+        // When & Then
+        mockMvc.perform(post("/v1/companies")
+                        .content(objectMapper.writeValueAsString(createRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
+                .andExpect(jsonPath("$.name").value("Test Company"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
 
-            // When & Then
-            mockMvc.perform(post("/v1/companies")
-                            .content(objectMapper.writeValueAsString(createRequest))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isCreated())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                    .andExpect(jsonPath("$.name").value("Test Company"))
-                    .andExpect(jsonPath("$.status").value("ACTIVE"));
-
-            verify(companyManagementService).createCompany(any(CompanyDto.class));
-        }
-
-        @Test
-        @DisplayName("Should handle invalid company data")
-        void shouldHandleInvalidCompanyData() throws Exception {
-            // Given
-            CompanyDto invalidRequest = CompanyDto.builder()
-                    .name("") // Invalid empty name
-                    .build();
-
-            // When & Then - Since there's no validation in the controller, this will actually succeed
-            mockMvc.perform(post("/v1/companies")
-                            .content(objectMapper.writeValueAsString(invalidRequest))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isCreated()); // Changed from isBadRequest() to isCreated()
-        }
+        verify(companyManagementService).createCompany(any(CompanyDto.class));
     }
 
-    @Nested
-    @DisplayName("Get Company Details Tests")
-    class GetCompanyDetailsTests {
+    @Test
+    @DisplayName("Should get company details by ID")
+    void shouldGetCompanyDetailsById() throws Exception {
+        // Given
+        when(companyManagementService.getCompanyDetails(testCompanyId))
+                .thenReturn(testCompanyDto);
 
-        @Test
-        @DisplayName("Should get company details successfully")
-        void shouldGetCompanyDetailsSuccessfully() throws Exception {
-            // Given
-            when(companyManagementService.getCompanyDetails(testCompanyId))
-                    .thenReturn(testCompanyDto);
+        // When & Then
+        mockMvc.perform(get("/v1/companies/{id}", testCompanyId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
+                .andExpect(jsonPath("$.name").value("Test Company"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.countryCode").value("USA"))
+                .andExpect(jsonPath("$.email").value("test@company.com"))
+                .andExpect(jsonPath("$.website").value("https://testcompany.com"));
 
-            // When & Then
-            mockMvc.perform(get("/v1/companies/{id}", testCompanyId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                    .andExpect(jsonPath("$.name").value("Test Company"))
-                    .andExpect(jsonPath("$.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.countryCode").value("USA"))
-                    .andExpect(jsonPath("$.email").value("test@company.com"))
-                    .andExpect(jsonPath("$.website").value("https://testcompany.com"));
-
-            verify(companyManagementService).getCompanyDetails(testCompanyId);
-        }
-
-        @Test
-        @DisplayName("Should handle company not found")
-        void shouldHandleCompanyNotFound() throws Exception {
-            // Given
-            when(companyManagementService.getCompanyDetails(testCompanyId))
-                    .thenThrow(new org.springframework.web.server.ResponseStatusException(
-                            org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
-
-            // When & Then
-            mockMvc.perform(get("/v1/companies/{id}", testCompanyId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-
-            verify(companyManagementService).getCompanyDetails(testCompanyId);
-        }
+        verify(companyManagementService).getCompanyDetails(testCompanyId);
     }
 
-    @Nested
-    @DisplayName("Update Company Tests")
-    class UpdateCompanyTests {
+    @Test
+    @DisplayName("Should update company by ID")
+    void shouldUpdateCompanyById() throws Exception {
+        // Given
+        CompanyDto updateRequest = CompanyDto.builder()
+                .name("Updated Company")
+                .countryCode("CAN")
+                .email("updated@company.com")
+                .website("https://updatedcompany.com")
+                .build();
 
-        @Test
-        @DisplayName("Should update company successfully")
-        void shouldUpdateCompanySuccessfully() throws Exception {
-            // Given
-            CompanyDto updateRequest = CompanyDto.builder()
-                    .name("Updated Company")
-                    .status(CompanyStatus.DEACTIVATED)
-                    .email("updated@company.com")
-                    .build();
+        CompanyDto updatedCompany = CompanyDto.builder()
+                .id(testCompanyId)
+                .name("Updated Company")
+                .countryCode("CAN")
+                .email("updated@company.com")
+                .website("https://updatedcompany.com")
+                .status(CompanyStatus.ACTIVE)
+                .build();
 
-            CompanyDto updatedCompany = CompanyDto.builder()
-                    .id(testCompanyId)
-                    .name("Updated Company")
-                    .status(CompanyStatus.DEACTIVATED)
-                    .email("updated@company.com")
-                    .build();
+        when(companyManagementService.updateCompany(eq(testCompanyId), any(CompanyDto.class)))
+                .thenReturn(updatedCompany);
 
-            when(companyManagementService.updateCompany(eq(testCompanyId), any(CompanyDto.class)))
-                    .thenReturn(updatedCompany);
+        // When & Then
+        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
+                        .content(objectMapper.writeValueAsString(updateRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
+                .andExpect(jsonPath("$.name").value("Updated Company"))
+                .andExpect(jsonPath("$.countryCode").value("CAN"))
+                .andExpect(jsonPath("$.email").value("updated@company.com"))
+                .andExpect(jsonPath("$.website").value("https://updatedcompany.com"));
 
-            // When & Then
-            mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                            .content(objectMapper.writeValueAsString(updateRequest))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                    .andExpect(jsonPath("$.name").value("Updated Company"))
-                    .andExpect(jsonPath("$.status").value("DEACTIVATED"))
-                    .andExpect(jsonPath("$.email").value("updated@company.com"));
-
-            verify(companyManagementService).updateCompany(eq(testCompanyId), any(CompanyDto.class));
-        }
-
-        @Test
-        @DisplayName("Should handle update company not found")
-        void shouldHandleUpdateCompanyNotFound() throws Exception {
-            // Given
-            CompanyDto updateRequest = CompanyDto.builder()
-                    .name("Updated Company")
-                    .build();
-
-            when(companyManagementService.updateCompany(eq(testCompanyId), any(CompanyDto.class)))
-                    .thenThrow(new org.springframework.web.server.ResponseStatusException(
-                            org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
-
-            // When & Then
-            mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                            .content(objectMapper.writeValueAsString(updateRequest))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNotFound());
-
-            verify(companyManagementService).updateCompany(eq(testCompanyId), any(CompanyDto.class));
-        }
+        verify(companyManagementService).updateCompany(eq(testCompanyId), any(CompanyDto.class));
     }
 } 

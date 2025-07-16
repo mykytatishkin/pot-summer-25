@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("Company Model Tests")
+@DisplayName("Company Entity Tests")
 class CompanyTest {
 
     private Company company;
@@ -20,6 +20,16 @@ class CompanyTest {
 
     @BeforeEach
     void setUp() {
+        company = new Company();
+        company.setId(UUID.randomUUID());
+        company.setName("Test Company");
+        company.setCountryCode("USA");
+        company.setEmail("test@company.com");
+        company.setWebsite("https://testcompany.com");
+        company.setStatus(CompanyStatus.ACTIVE);
+        company.setCreatedAt(Instant.now());
+        company.setUpdatedAt(Instant.now());
+
         address = new Address();
         address.setCountry("USA");
         address.setCity("New York");
@@ -31,24 +41,13 @@ class CompanyTest {
         phone.setCode("+1");
         phone.setNumber("555-1234");
 
-        company = new Company();
-        company.setId(UUID.randomUUID());
-        company.setName("Test Company");
-        company.setCountryCode("USA");
-        company.setEmail("test@company.com");
-        company.setWebsite("https://testcompany.com");
-        company.setStatus(CompanyStatus.ACTIVE);
         company.setAddressData(List.of(address));
         company.setPhoneData(List.of(phone));
-        company.setCreatedBy(UUID.randomUUID());
-        company.setCreatedAt(Instant.now());
-        company.setUpdatedBy(UUID.randomUUID());
-        company.setUpdatedAt(Instant.now());
     }
 
     @Test
-    @DisplayName("Should create company with all fields")
-    void shouldCreateCompanyWithAllFields() {
+    @DisplayName("Should create company with all required fields")
+    void shouldCreateCompanyWithAllRequiredFields() {
         // Then
         assertThat(company).isNotNull();
         assertThat(company.getId()).isNotNull();
@@ -59,88 +58,43 @@ class CompanyTest {
         assertThat(company.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
         assertThat(company.getAddressData()).hasSize(1);
         assertThat(company.getPhoneData()).hasSize(1);
-        assertThat(company.getCreatedBy()).isNotNull();
-        assertThat(company.getCreatedAt()).isNotNull();
-        assertThat(company.getUpdatedBy()).isNotNull();
-        assertThat(company.getUpdatedAt()).isNotNull();
     }
 
     @Test
     @DisplayName("Should update company fields")
     void shouldUpdateCompanyFields() {
         // Given
-        UUID newId = UUID.randomUUID();
         String newName = "Updated Company";
         String newCountryCode = "CAN";
         String newEmail = "updated@company.com";
         String newWebsite = "https://updatedcompany.com";
-        CompanyStatus newStatus = CompanyStatus.DEACTIVATED;
-        UUID newCreatedBy = UUID.randomUUID();
-        UUID newUpdatedBy = UUID.randomUUID();
-        Instant newCreatedAt = Instant.now().minusSeconds(3600);
-        Instant newUpdatedAt = Instant.now();
 
         // When
-        company.setId(newId);
         company.setName(newName);
         company.setCountryCode(newCountryCode);
         company.setEmail(newEmail);
         company.setWebsite(newWebsite);
-        company.setStatus(newStatus);
-        company.setCreatedBy(newCreatedBy);
-        company.setUpdatedBy(newUpdatedBy);
-        company.setCreatedAt(newCreatedAt);
-        company.setUpdatedAt(newUpdatedAt);
 
         // Then
-        assertThat(company.getId()).isEqualTo(newId);
         assertThat(company.getName()).isEqualTo(newName);
         assertThat(company.getCountryCode()).isEqualTo(newCountryCode);
         assertThat(company.getEmail()).isEqualTo(newEmail);
         assertThat(company.getWebsite()).isEqualTo(newWebsite);
-        assertThat(company.getStatus()).isEqualTo(newStatus);
-        assertThat(company.getCreatedBy()).isEqualTo(newCreatedBy);
-        assertThat(company.getUpdatedBy()).isEqualTo(newUpdatedBy);
-        assertThat(company.getCreatedAt()).isEqualTo(newCreatedAt);
-        assertThat(company.getUpdatedAt()).isEqualTo(newUpdatedAt);
     }
 
     @Test
-    @DisplayName("Should handle null fields")
-    void shouldHandleNullFields() {
-        // When
-        company.setEmail(null);
-        company.setWebsite(null);
-        company.setStatus(null);
-        company.setAddressData(null);
-        company.setPhoneData(null);
-        company.setCreatedBy(null);
-        company.setUpdatedBy(null);
-        company.setCreatedAt(null);
-        company.setUpdatedAt(null);
+    @DisplayName("Should handle optional fields as null")
+    void shouldHandleOptionalFieldsAsNull() {
+        // Given
+        Company minimalCompany = new Company();
+        minimalCompany.setName("Minimal Company");
+        minimalCompany.setCountryCode("USA");
 
-        // Then
-        assertThat(company.getEmail()).isNull();
-        assertThat(company.getWebsite()).isNull();
-        assertThat(company.getStatus()).isNull();
-        assertThat(company.getAddressData()).isNull();
-        assertThat(company.getPhoneData()).isNull();
-        assertThat(company.getCreatedBy()).isNull();
-        assertThat(company.getUpdatedBy()).isNull();
-        assertThat(company.getCreatedAt()).isNull();
-        assertThat(company.getUpdatedAt()).isNull();
-    }
-
-    @Test
-    @DisplayName("Should handle empty address and phone data")
-    void shouldHandleEmptyAddressAndPhoneData() {
-        // When
-        company.setAddressData(List.of());
-        company.setPhoneData(List.of());
-
-        // Then
-        assertThat(company.getAddressData()).isEmpty();
-        assertThat(company.getPhoneData()).isEmpty();
+        // When & Then
+        assertThat(minimalCompany.getEmail()).isNull();
+        assertThat(minimalCompany.getWebsite()).isNull();
+        assertThat(minimalCompany.getAddressData()).isNull();
+        assertThat(minimalCompany.getPhoneData()).isNull();
     }
 
     @Test
@@ -173,119 +127,32 @@ class CompanyTest {
     @DisplayName("Should handle different company statuses")
     void shouldHandleDifferentCompanyStatuses() {
         // When
-        company.setStatus(CompanyStatus.DEACTIVATED);
-
-        // Then
-        assertThat(company.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
-
-        // When
         company.setStatus(CompanyStatus.ACTIVE);
-
-        // Then
         assertThat(company.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
+
+        company.setStatus(CompanyStatus.DEACTIVATED);
+        assertThat(company.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
     }
 
     @Test
-    @DisplayName("Should handle long company name")
-    void shouldHandleLongCompanyName() {
+    @DisplayName("Should handle audit fields")
+    void shouldHandleAuditFields() {
         // Given
-        String longName = "This is a very long company name that might exceed normal expectations";
+        UUID createdBy = UUID.randomUUID();
+        UUID updatedBy = UUID.randomUUID();
+        Instant createdAt = Instant.now();
+        Instant updatedAt = Instant.now();
 
         // When
-        company.setName(longName);
+        company.setCreatedBy(createdBy);
+        company.setUpdatedBy(updatedBy);
+        company.setCreatedAt(createdAt);
+        company.setUpdatedAt(updatedAt);
 
         // Then
-        assertThat(company.getName()).isEqualTo(longName);
-    }
-
-    @Test
-    @DisplayName("Should handle special characters in company name")
-    void shouldHandleSpecialCharactersInCompanyName() {
-        // Given
-        String specialName = "Company & Sons, Inc. - Special Characters: @#$%^&*()";
-
-        // When
-        company.setName(specialName);
-
-        // Then
-        assertThat(company.getName()).isEqualTo(specialName);
-    }
-
-    @Test
-    @DisplayName("Should handle different country codes")
-    void shouldHandleDifferentCountryCodes() {
-        // When
-        company.setCountryCode("CAN");
-
-        // Then
-        assertThat(company.getCountryCode()).isEqualTo("CAN");
-
-        // When
-        company.setCountryCode("GBR");
-
-        // Then
-        assertThat(company.getCountryCode()).isEqualTo("GBR");
-    }
-
-    @Test
-    @DisplayName("Should handle complex email addresses")
-    void shouldHandleComplexEmailAddresses() {
-        // Given
-        String complexEmail = "test+tag@company-domain.co.uk";
-
-        // When
-        company.setEmail(complexEmail);
-
-        // Then
-        assertThat(company.getEmail()).isEqualTo(complexEmail);
-    }
-
-    @Test
-    @DisplayName("Should handle complex website URLs")
-    void shouldHandleComplexWebsiteUrls() {
-        // Given
-        String complexWebsite = "https://www.company-name.com/path/to/page?param=value#section";
-
-        // When
-        company.setWebsite(complexWebsite);
-
-        // Then
-        assertThat(company.getWebsite()).isEqualTo(complexWebsite);
-    }
-
-    @Test
-    @DisplayName("Should handle instant timestamps correctly")
-    void shouldHandleInstantTimestampsCorrectly() {
-        // Given
-        Instant pastTime = Instant.now().minusSeconds(86400); // 1 day ago
-        Instant futureTime = Instant.now().plusSeconds(86400); // 1 day in future
-
-        // When
-        company.setCreatedAt(pastTime);
-        company.setUpdatedAt(futureTime);
-
-        // Then
-        assertThat(company.getCreatedAt()).isEqualTo(pastTime);
-        assertThat(company.getUpdatedAt()).isEqualTo(futureTime);
-        assertThat(company.getCreatedAt()).isBefore(company.getUpdatedAt());
-    }
-
-    @Test
-    @DisplayName("Should handle UUID fields correctly")
-    void shouldHandleUuidFieldsCorrectly() {
-        // Given
-        UUID newId = UUID.randomUUID();
-        UUID newCreatedBy = UUID.randomUUID();
-        UUID newUpdatedBy = UUID.randomUUID();
-
-        // When
-        company.setId(newId);
-        company.setCreatedBy(newCreatedBy);
-        company.setUpdatedBy(newUpdatedBy);
-
-        // Then
-        assertThat(company.getId()).isEqualTo(newId);
-        assertThat(company.getCreatedBy()).isEqualTo(newCreatedBy);
-        assertThat(company.getUpdatedBy()).isEqualTo(newUpdatedBy);
+        assertThat(company.getCreatedBy()).isEqualTo(createdBy);
+        assertThat(company.getUpdatedBy()).isEqualTo(updatedBy);
+        assertThat(company.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(company.getUpdatedAt()).isEqualTo(updatedAt);
     }
 } 

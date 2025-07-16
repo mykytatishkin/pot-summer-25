@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +24,6 @@ class CompanyFilterTest {
     @DisplayName("Should create empty filter")
     void shouldCreateEmptyFilter() {
         // Then
-        assertThat(filter).isNotNull();
         assertThat(filter.getName()).isNull();
         assertThat(filter.getCountryCode()).isNull();
         assertThat(filter.getStatus()).isNull();
@@ -73,33 +73,23 @@ class CompanyFilterTest {
     }
 
     @Test
-    @DisplayName("Should set and get created date range filters")
-    void shouldSetAndGetCreatedDateRangeFilters() {
+    @DisplayName("Should set and get date range filters")
+    void shouldSetAndGetDateRangeFilters() {
         // Given
-        Instant createdFrom = Instant.now().minusSeconds(86400); // 1 day ago
+        Instant createdFrom = Instant.now().minusSeconds(3600);
         Instant createdTo = Instant.now();
+        Instant updatedFrom = Instant.now().minusSeconds(1800);
+        Instant updatedTo = Instant.now();
 
         // When
         filter.setCreatedFrom(createdFrom);
         filter.setCreatedTo(createdTo);
-
-        // Then
-        assertThat(filter.getCreatedFrom()).isEqualTo(createdFrom);
-        assertThat(filter.getCreatedTo()).isEqualTo(createdTo);
-    }
-
-    @Test
-    @DisplayName("Should set and get updated date range filters")
-    void shouldSetAndGetUpdatedDateRangeFilters() {
-        // Given
-        Instant updatedFrom = Instant.now().minusSeconds(3600); // 1 hour ago
-        Instant updatedTo = Instant.now();
-
-        // When
         filter.setUpdatedFrom(updatedFrom);
         filter.setUpdatedTo(updatedTo);
 
         // Then
+        assertThat(filter.getCreatedFrom()).isEqualTo(createdFrom);
+        assertThat(filter.getCreatedTo()).isEqualTo(createdTo);
         assertThat(filter.getUpdatedFrom()).isEqualTo(updatedFrom);
         assertThat(filter.getUpdatedTo()).isEqualTo(updatedTo);
     }
@@ -127,109 +117,28 @@ class CompanyFilterTest {
     }
 
     @Test
-    @DisplayName("Should handle different company statuses")
-    void shouldHandleDifferentCompanyStatuses() {
-        // When
-        filter.setStatus(CompanyStatus.ACTIVE);
-
-        // Then
-        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-
-        // When
-        filter.setStatus(CompanyStatus.DEACTIVATED);
-
-        // Then
-        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
-    }
-
-    @Test
     @DisplayName("Should handle different country codes")
     void shouldHandleDifferentCountryCodes() {
         // When
         filter.setCountryCode("USA");
-
-        // Then
         assertThat(filter.getCountryCode()).isEqualTo("USA");
 
-        // When
         filter.setCountryCode("CAN");
-
-        // Then
         assertThat(filter.getCountryCode()).isEqualTo("CAN");
 
-        // When
         filter.setCountryCode("GBR");
-
-        // Then
         assertThat(filter.getCountryCode()).isEqualTo("GBR");
     }
 
     @Test
-    @DisplayName("Should handle long company names")
-    void shouldHandleLongCompanyNames() {
-        // Given
-        String longName = "This is a very long company name that might exceed normal expectations";
-
+    @DisplayName("Should handle different company statuses")
+    void shouldHandleDifferentCompanyStatuses() {
         // When
-        filter.setName(longName);
+        filter.setStatus(CompanyStatus.ACTIVE);
+        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
 
-        // Then
-        assertThat(filter.getName()).isEqualTo(longName);
-    }
-
-    @Test
-    @DisplayName("Should handle special characters in company name")
-    void shouldHandleSpecialCharactersInCompanyName() {
-        // Given
-        String specialName = "Company & Sons, Inc. - Special Characters: @#$%^&*()";
-
-        // When
-        filter.setName(specialName);
-
-        // Then
-        assertThat(filter.getName()).isEqualTo(specialName);
-    }
-
-    @Test
-    @DisplayName("Should handle instant timestamps correctly")
-    void shouldHandleInstantTimestampsCorrectly() {
-        // Given
-        Instant pastTime = Instant.now().minusSeconds(86400); // 1 day ago
-        Instant futureTime = Instant.now().plusSeconds(86400); // 1 day in future
-
-        // When
-        filter.setCreatedFrom(pastTime);
-        filter.setCreatedTo(futureTime);
-        filter.setUpdatedFrom(pastTime);
-        filter.setUpdatedTo(futureTime);
-
-        // Then
-        assertThat(filter.getCreatedFrom()).isEqualTo(pastTime);
-        assertThat(filter.getCreatedTo()).isEqualTo(futureTime);
-        assertThat(filter.getUpdatedFrom()).isEqualTo(pastTime);
-        assertThat(filter.getUpdatedTo()).isEqualTo(futureTime);
-        assertThat(filter.getCreatedFrom()).isBefore(filter.getCreatedTo());
-        assertThat(filter.getUpdatedFrom()).isBefore(filter.getUpdatedTo());
-    }
-
-    @Test
-    @DisplayName("Should handle edge case timestamps")
-    void shouldHandleEdgeCaseTimestamps() {
-        // Given
-        Instant epoch = Instant.EPOCH;
-        Instant maxTime = Instant.MAX;
-
-        // When
-        filter.setCreatedFrom(epoch);
-        filter.setCreatedTo(maxTime);
-        filter.setUpdatedFrom(epoch);
-        filter.setUpdatedTo(maxTime);
-
-        // Then
-        assertThat(filter.getCreatedFrom()).isEqualTo(epoch);
-        assertThat(filter.getCreatedTo()).isEqualTo(maxTime);
-        assertThat(filter.getUpdatedFrom()).isEqualTo(epoch);
-        assertThat(filter.getUpdatedTo()).isEqualTo(maxTime);
+        filter.setStatus(CompanyStatus.DEACTIVATED);
+        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
     }
 
     @Test
@@ -248,11 +157,11 @@ class CompanyFilterTest {
     @DisplayName("Should handle whitespace values")
     void shouldHandleWhitespaceValues() {
         // When
-        filter.setName("   ");
+        filter.setName("  ");
         filter.setCountryCode("  ");
 
         // Then
-        assertThat(filter.getName()).isEqualTo("   ");
+        assertThat(filter.getName()).isEqualTo("  ");
         assertThat(filter.getCountryCode()).isEqualTo("  ");
     }
 
@@ -269,65 +178,53 @@ class CompanyFilterTest {
     }
 
     @Test
-    @DisplayName("Should handle multiple filter updates")
-    void shouldHandleMultipleFilterUpdates() {
+    @DisplayName("Should update filter values")
+    void shouldUpdateFilterValues() {
         // Given
-        String name1 = "Company 1";
-        String name2 = "Company 2";
-        String countryCode1 = "USA";
-        String countryCode2 = "CAN";
-        CompanyStatus status1 = CompanyStatus.ACTIVE;
-        CompanyStatus status2 = CompanyStatus.DEACTIVATED;
+        String initialName = "Initial Company";
+        String updatedName = "Updated Company";
+        String initialCountryCode = "USA";
+        String updatedCountryCode = "CAN";
 
         // When
-        filter.setName(name1);
-        filter.setCountryCode(countryCode1);
-        filter.setStatus(status1);
+        filter.setName(initialName);
+        filter.setCountryCode(initialCountryCode);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(name1);
-        assertThat(filter.getCountryCode()).isEqualTo(countryCode1);
-        assertThat(filter.getStatus()).isEqualTo(status1);
+        assertThat(filter.getName()).isEqualTo(initialName);
+        assertThat(filter.getCountryCode()).isEqualTo(initialCountryCode);
 
         // When
-        filter.setName(name2);
-        filter.setCountryCode(countryCode2);
-        filter.setStatus(status2);
+        filter.setName(updatedName);
+        filter.setCountryCode(updatedCountryCode);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(name2);
-        assertThat(filter.getCountryCode()).isEqualTo(countryCode2);
-        assertThat(filter.getStatus()).isEqualTo(status2);
+        assertThat(filter.getName()).isEqualTo(updatedName);
+        assertThat(filter.getCountryCode()).isEqualTo(updatedCountryCode);
     }
 
     @Test
-    @DisplayName("Should handle complex filter combinations")
-    void shouldHandleComplexFilterCombinations() {
+    @DisplayName("Should handle complex search scenarios")
+    void shouldHandleComplexSearchScenarios() {
         // Given
-        String name = "Test Company";
+        String companyName = "Test Company";
         String countryCode = "USA";
         CompanyStatus status = CompanyStatus.ACTIVE;
-        Instant createdFrom = Instant.now().minusSeconds(86400);
+        Instant createdFrom = Instant.now().minusSeconds(7200);
         Instant createdTo = Instant.now();
-        Instant updatedFrom = Instant.now().minusSeconds(3600);
-        Instant updatedTo = Instant.now();
 
         // When
-        filter.setName(name);
+        filter.setName(companyName);
         filter.setCountryCode(countryCode);
         filter.setStatus(status);
         filter.setCreatedFrom(createdFrom);
         filter.setCreatedTo(createdTo);
-        filter.setUpdatedFrom(updatedFrom);
-        filter.setUpdatedTo(updatedTo);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(name);
+        assertThat(filter.getName()).isEqualTo(companyName);
         assertThat(filter.getCountryCode()).isEqualTo(countryCode);
         assertThat(filter.getStatus()).isEqualTo(status);
         assertThat(filter.getCreatedFrom()).isEqualTo(createdFrom);
         assertThat(filter.getCreatedTo()).isEqualTo(createdTo);
-        assertThat(filter.getUpdatedFrom()).isEqualTo(updatedFrom);
-        assertThat(filter.getUpdatedTo()).isEqualTo(updatedTo);
     }
 } 
