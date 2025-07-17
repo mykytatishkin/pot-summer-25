@@ -11,7 +11,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.coherentsolutions.pot.insurance_service.exception.GlobalExceptionHandler;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
