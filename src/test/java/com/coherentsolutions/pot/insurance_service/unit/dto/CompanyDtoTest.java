@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Company DTO Tests")
 class CompanyDtoTest {
@@ -64,19 +64,19 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getId()).isEqualTo(testCompanyId);
-        assertThat(companyDto.getName()).isEqualTo("Test Company");
-        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
-        assertThat(companyDto.getEmail()).isEqualTo("test@company.com");
-        assertThat(companyDto.getWebsite()).isEqualTo("https://testcompany.com");
-        assertThat(companyDto.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-        assertThat(companyDto.getAddressData()).hasSize(1);
-        assertThat(companyDto.getPhoneData()).hasSize(1);
-        assertThat(companyDto.getCreatedBy()).isEqualTo(createdBy);
-        assertThat(companyDto.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(companyDto.getUpdatedBy()).isEqualTo(updatedBy);
-        assertThat(companyDto.getUpdatedAt()).isEqualTo(updatedAt);
+        assertNotNull(companyDto);
+        assertEquals(testCompanyId, companyDto.getId());
+        assertEquals("Test Company", companyDto.getName());
+        assertEquals("USA", companyDto.getCountryCode());
+        assertEquals("test@company.com", companyDto.getEmail());
+        assertEquals("https://testcompany.com", companyDto.getWebsite());
+        assertEquals(CompanyStatus.ACTIVE, companyDto.getStatus());
+        assertEquals(1, companyDto.getAddressData().size());
+        assertEquals(1, companyDto.getPhoneData().size());
+        assertEquals(createdBy, companyDto.getCreatedBy());
+        assertEquals(createdAt, companyDto.getCreatedAt());
+        assertEquals(updatedBy, companyDto.getUpdatedBy());
+        assertEquals(updatedAt, companyDto.getUpdatedAt());
     }
 
     @Test
@@ -89,19 +89,19 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isEqualTo("Test Company");
-        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
-        assertThat(companyDto.getId()).isNull();
-        assertThat(companyDto.getEmail()).isNull();
-        assertThat(companyDto.getWebsite()).isNull();
-        assertThat(companyDto.getStatus()).isNull();
-        assertThat(companyDto.getAddressData()).isNull();
-        assertThat(companyDto.getPhoneData()).isNull();
-        assertThat(companyDto.getCreatedBy()).isNull();
-        assertThat(companyDto.getCreatedAt()).isNull();
-        assertThat(companyDto.getUpdatedBy()).isNull();
-        assertThat(companyDto.getUpdatedAt()).isNull();
+        assertNotNull(companyDto);
+        assertEquals("Test Company", companyDto.getName());
+        assertEquals("USA", companyDto.getCountryCode());
+        assertNull(companyDto.getId());
+        assertNull(companyDto.getEmail());
+        assertNull(companyDto.getWebsite());
+        assertNull(companyDto.getStatus());
+        assertNull(companyDto.getAddressData());
+        assertNull(companyDto.getPhoneData());
+        assertNull(companyDto.getCreatedBy());
+        assertNull(companyDto.getCreatedAt());
+        assertNull(companyDto.getUpdatedBy());
+        assertNull(companyDto.getUpdatedAt());
     }
 
     @Test
@@ -119,8 +119,8 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(activeCompany.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-        assertThat(deactivatedCompany.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
+        assertEquals(CompanyStatus.ACTIVE, activeCompany.getStatus());
+        assertEquals(CompanyStatus.DEACTIVATED, deactivatedCompany.getStatus());
     }
 
     @Test
@@ -146,12 +146,12 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto.getAddressData()).hasSize(2);
-        assertThat(companyDto.getPhoneData()).hasSize(2);
-        assertThat(companyDto.getAddressData().get(0).getCity()).isEqualTo("New York");
-        assertThat(companyDto.getAddressData().get(1).getCity()).isEqualTo("Toronto");
-        assertThat(companyDto.getPhoneData().get(0).getNumber()).isEqualTo("555-1234");
-        assertThat(companyDto.getPhoneData().get(1).getNumber()).isEqualTo("555-5678");
+        assertEquals(2, companyDto.getAddressData().size());
+        assertEquals(2, companyDto.getPhoneData().size());
+        assertEquals("New York", companyDto.getAddressData().get(0).getCity());
+        assertEquals("Toronto", companyDto.getAddressData().get(1).getCity());
+        assertEquals("555-1234", companyDto.getPhoneData().get(0).getNumber());
+        assertEquals("555-5678", companyDto.getPhoneData().get(1).getNumber());
     }
 
     @Test
@@ -168,10 +168,10 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto.getEmail()).isNull();
-        assertThat(companyDto.getWebsite()).isNull();
-        assertThat(companyDto.getAddressData()).isNull();
-        assertThat(companyDto.getPhoneData()).isNull();
+        assertNull(companyDto.getEmail());
+        assertNull(companyDto.getWebsite());
+        assertNull(companyDto.getAddressData());
+        assertNull(companyDto.getPhoneData());
     }
 
     @Test
@@ -184,9 +184,9 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isNull();
-        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
+        assertNotNull(companyDto);
+        assertNull(companyDto.getName());
+        assertEquals("USA", companyDto.getCountryCode());
     }
 
     @Test
@@ -199,9 +199,9 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isEqualTo("Test Company");
-        assertThat(companyDto.getCountryCode()).isNull();
+        assertNotNull(companyDto);
+        assertEquals("Test Company", companyDto.getName());
+        assertNull(companyDto.getCountryCode());
     }
 
     @Test
@@ -214,9 +214,9 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isEmpty();
-        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
+        assertNotNull(companyDto);
+        assertEquals("", companyDto.getName());
+        assertEquals("USA", companyDto.getCountryCode());
     }
 
     @Test
@@ -229,9 +229,9 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isEqualTo("Test Company");
-        assertThat(companyDto.getCountryCode()).isEmpty();
+        assertNotNull(companyDto);
+        assertEquals("Test Company", companyDto.getName());
+        assertEquals("", companyDto.getCountryCode());
     }
 
     @Test
@@ -245,10 +245,10 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isEqualTo("Test Company");
-        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
-        assertThat(companyDto.getEmail()).isEqualTo("invalid-email-format");
+        assertNotNull(companyDto);
+        assertEquals("Test Company", companyDto.getName());
+        assertEquals("USA", companyDto.getCountryCode());
+        assertEquals("invalid-email-format", companyDto.getEmail());
     }
 
     @Test
@@ -261,9 +261,9 @@ class CompanyDtoTest {
                 .build();
 
         // Then
-        assertThat(companyDto).isNotNull();
-        assertThat(companyDto.getName()).isNull();
-        assertThat(companyDto.getCountryCode()).isNull();
+        assertNotNull(companyDto);
+        assertNull(companyDto.getName());
+        assertNull(companyDto.getCountryCode());
     }
 
     @Test
@@ -286,13 +286,13 @@ class CompanyDtoTest {
                 .build();
 
         // Then: All DTOs can be created without validation errors
-        assertThat(dtoWithNullName).isNotNull();
-        assertThat(dtoWithNullName.getName()).isNull();
+        assertNotNull(dtoWithNullName);
+        assertNull(dtoWithNullName.getName());
 
-        assertThat(dtoWithEmptyName).isNotNull();
-        assertThat(dtoWithEmptyName.getName()).isEmpty();
+        assertNotNull(dtoWithEmptyName);
+        assertEquals("", dtoWithEmptyName.getName());
 
-        assertThat(dtoWithValidName).isNotNull();
-        assertThat(dtoWithValidName.getName()).isEqualTo("Valid Company");
+        assertNotNull(dtoWithValidName);
+        assertEquals("Valid Company", dtoWithValidName.getName());
     }
 } 

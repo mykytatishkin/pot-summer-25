@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Company Entity Tests")
 class CompanyTest {
@@ -52,15 +52,15 @@ class CompanyTest {
     @DisplayName("Should create company with all required fields")
     void shouldCreateCompanyWithAllRequiredFields() {
         // Then
-        assertThat(company).isNotNull();
-        assertThat(company.getId()).isNotNull();
-        assertThat(company.getName()).isEqualTo("Test Company");
-        assertThat(company.getCountryCode()).isEqualTo("USA");
-        assertThat(company.getEmail()).isEqualTo("test@company.com");
-        assertThat(company.getWebsite()).isEqualTo("https://testcompany.com");
-        assertThat(company.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-        assertThat(company.getAddressData()).hasSize(1);
-        assertThat(company.getPhoneData()).hasSize(1);
+        assertNotNull(company);
+        assertNotNull(company.getId());
+        assertEquals("Test Company", company.getName());
+        assertEquals("USA", company.getCountryCode());
+        assertEquals("test@company.com", company.getEmail());
+        assertEquals("https://testcompany.com", company.getWebsite());
+        assertEquals(CompanyStatus.ACTIVE, company.getStatus());
+        assertEquals(1, company.getAddressData().size());
+        assertEquals(1, company.getPhoneData().size());
     }
 
     @Test
@@ -79,10 +79,10 @@ class CompanyTest {
         company.setWebsite(newWebsite);
 
         // Then
-        assertThat(company.getName()).isEqualTo(newName);
-        assertThat(company.getCountryCode()).isEqualTo(newCountryCode);
-        assertThat(company.getEmail()).isEqualTo(newEmail);
-        assertThat(company.getWebsite()).isEqualTo(newWebsite);
+        assertEquals(newName, company.getName());
+        assertEquals(newCountryCode, company.getCountryCode());
+        assertEquals(newEmail, company.getEmail());
+        assertEquals(newWebsite, company.getWebsite());
     }
 
     @Test
@@ -94,10 +94,10 @@ class CompanyTest {
         minimalCompany.setCountryCode("USA");
 
         // When & Then
-        assertThat(minimalCompany.getEmail()).isNull();
-        assertThat(minimalCompany.getWebsite()).isNull();
-        assertThat(minimalCompany.getAddressData()).isNull();
-        assertThat(minimalCompany.getPhoneData()).isNull();
+        assertNull(minimalCompany.getEmail());
+        assertNull(minimalCompany.getWebsite());
+        assertNull(minimalCompany.getAddressData());
+        assertNull(minimalCompany.getPhoneData());
     }
 
     @Test
@@ -118,12 +118,12 @@ class CompanyTest {
         company.setPhoneData(List.of(phone, phone2));
 
         // Then
-        assertThat(company.getAddressData()).hasSize(2);
-        assertThat(company.getPhoneData()).hasSize(2);
-        assertThat(company.getAddressData().get(0).getCity()).isEqualTo("New York");
-        assertThat(company.getAddressData().get(1).getCity()).isEqualTo("Toronto");
-        assertThat(company.getPhoneData().get(0).getNumber()).isEqualTo("555-1234");
-        assertThat(company.getPhoneData().get(1).getNumber()).isEqualTo("555-5678");
+        assertEquals(2, company.getAddressData().size());
+        assertEquals(2, company.getPhoneData().size());
+        assertEquals("New York", company.getAddressData().get(0).getCity());
+        assertEquals("Toronto", company.getAddressData().get(1).getCity());
+        assertEquals("555-1234", company.getPhoneData().get(0).getNumber());
+        assertEquals("555-5678", company.getPhoneData().get(1).getNumber());
     }
 
     @Test
@@ -131,10 +131,10 @@ class CompanyTest {
     void shouldHandleDifferentCompanyStatuses() {
         // When
         company.setStatus(CompanyStatus.ACTIVE);
-        assertThat(company.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
+        assertEquals(CompanyStatus.ACTIVE, company.getStatus());
 
         company.setStatus(CompanyStatus.DEACTIVATED);
-        assertThat(company.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
+        assertEquals(CompanyStatus.DEACTIVATED, company.getStatus());
     }
 
     @Test
@@ -153,9 +153,9 @@ class CompanyTest {
         company.setUpdatedAt(updatedAt);
 
         // Then
-        assertThat(company.getCreatedBy()).isEqualTo(createdBy);
-        assertThat(company.getUpdatedBy()).isEqualTo(updatedBy);
-        assertThat(company.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(company.getUpdatedAt()).isEqualTo(updatedAt);
+        assertEquals(createdBy, company.getCreatedBy());
+        assertEquals(updatedBy, company.getUpdatedBy());
+        assertEquals(createdAt, company.getCreatedAt());
+        assertEquals(updatedAt, company.getUpdatedAt());
     }
 } 

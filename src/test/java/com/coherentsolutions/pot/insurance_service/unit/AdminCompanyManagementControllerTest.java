@@ -35,8 +35,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Admin Company Management Controller Tests")
@@ -68,22 +69,36 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenReturn(companyPage);
 
         // When & Then
-        getMockMvc().perform(get("/v1/companies")
+        String responseJson = getMockMvc().perform(get("/v1/companies")
                         .param("page", "0")
                         .param("size", "10")
                         .param("name", "Test")
                         .param("countryCode", "USA")
                         .param("status", "ACTIVE")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content[0].id").value(testCompanyId.toString()))
-                .andExpect(jsonPath("$.content[0].name").value("Test Company"))
-                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        verify(companyManagementService).getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable));
+        assertEquals(200, getMockMvc().perform(get("/v1/companies")
+                .param("page", "0")
+                .param("size", "10")
+                .param("name", "Test")
+                .param("countryCode", "USA")
+                .param("status", "ACTIVE")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getStatus());
+
+        // Parse and validate response
+        var response = getObjectMapper().readTree(responseJson);
+        assertTrue(response.has("content"));
+        assertTrue(response.get("content").isArray());
+        assertEquals(testCompanyId.toString(), response.get("content").get(0).get("id").asText());
+        assertEquals("Test Company", response.get("content").get(0).get("name").asText());
+        assertEquals("ACTIVE", response.get("content").get(0).get("status").asText());
+        assertEquals(1, response.get("totalElements").asInt());
+
+        verify(companyManagementService, times(2)).getCompaniesWithFilters(any(CompanyFilter.class), eq(pageable));
     }
 
     @Test
@@ -106,16 +121,25 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenReturn(testCompanyDto);
 
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        String responseJson = getMockMvc().perform(post("/v1/companies")
                         .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                .andExpect(jsonPath("$.name").value("Test Company"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        verify(companyManagementService).createCompany(any(CompanyDto.class));
+        assertEquals(201, getMockMvc().perform(post("/v1/companies")
+                .content(getObjectMapper().writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getStatus());
+
+        // Parse and validate response
+        var response = getObjectMapper().readTree(responseJson);
+        assertEquals(testCompanyId.toString(), response.get("id").asText());
+        assertEquals("Test Company", response.get("name").asText());
+        assertEquals("ACTIVE", response.get("status").asText());
+
+        verify(companyManagementService, times(2)).createCompany(any(CompanyDto.class));
     }
 
     @Test
@@ -128,18 +152,26 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenReturn(testCompanyDto);
 
         // When & Then
-        getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
+        String responseJson = getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                .andExpect(jsonPath("$.name").value("Test Company"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.countryCode").value("USA"))
-                .andExpect(jsonPath("$.email").value("test@company.com"))
-                .andExpect(jsonPath("$.website").value("https://testcompany.com"));
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        verify(companyManagementService).getCompanyDetails(testCompanyId);
+        assertEquals(200, getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getStatus());
+
+        // Parse and validate response
+        var response = getObjectMapper().readTree(responseJson);
+        assertEquals(testCompanyId.toString(), response.get("id").asText());
+        assertEquals("Test Company", response.get("name").asText());
+        assertEquals("ACTIVE", response.get("status").asText());
+        assertEquals("USA", response.get("countryCode").asText());
+        assertEquals("test@company.com", response.get("email").asText());
+        assertEquals("https://testcompany.com", response.get("website").asText());
+
+        verify(companyManagementService, times(2)).getCompanyDetails(testCompanyId);
     }
 
     @Test
@@ -167,18 +199,27 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenReturn(updatedCompany);
 
         // When & Then
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        String responseJson = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(testCompanyId.toString()))
-                .andExpect(jsonPath("$.name").value("Updated Company"))
-                .andExpect(jsonPath("$.countryCode").value("CAN"))
-                .andExpect(jsonPath("$.email").value("updated@company.com"))
-                .andExpect(jsonPath("$.website").value("https://updatedcompany.com"));
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        verify(companyManagementService).updateCompany(eq(testCompanyId), any(CompanyDto.class));
+        assertEquals(200, getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+                .content(getObjectMapper().writeValueAsString(updateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getStatus());
+
+        // Parse and validate response
+        var response = getObjectMapper().readTree(responseJson);
+        assertEquals(testCompanyId.toString(), response.get("id").asText());
+        assertEquals("Updated Company", response.get("name").asText());
+        assertEquals("CAN", response.get("countryCode").asText());
+        assertEquals("updated@company.com", response.get("email").asText());
+        assertEquals("https://updatedcompany.com", response.get("website").asText());
+
+        verify(companyManagementService, times(2)).updateCompany(eq(testCompanyId), any(CompanyDto.class));
     }
 
     @Test
@@ -191,11 +232,11 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
-        getMockMvc().perform(get("/v1/companies/{id}", nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        assertEquals(404, getMockMvc().perform(get("/v1/companies/{id}", nonExistentId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getStatus());
 
-        verify(companyManagementService).getCompanyDetails(nonExistentId);
+        verify(companyManagementService, times(1)).getCompanyDetails(nonExistentId);
     }
 
     @Test
@@ -213,12 +254,13 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
-        getMockMvc().perform(put("/v1/companies/{id}", nonExistentId)
+        int status = getMockMvc().perform(put("/v1/companies/{id}", nonExistentId)
                         .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andReturn().getResponse().getStatus();
+        assertEquals(404, status);
 
-        verify(companyManagementService).updateCompany(eq(nonExistentId), any(CompanyDto.class));
+        verify(companyManagementService, times(1)).updateCompany(eq(nonExistentId), any(CompanyDto.class));
     }
 
     @Test
@@ -228,10 +270,11 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
         String invalidJson = "{ invalid json }";
 
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .content(invalidJson)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
@@ -242,20 +285,22 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
 
         // When & Then
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(invalidJson)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
     @DisplayName("Should return 400 when creating company with empty request body")
     void shouldReturn400WhenCreatingCompanyWithEmptyBody() throws Exception {
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
@@ -263,19 +308,21 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     void shouldReturn400WhenUpdatingCompanyWithEmptyBody() throws Exception {
         // When & Then
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
     @DisplayName("Should return 400 when creating company with null request body")
     void shouldReturn400WhenCreatingCompanyWithNullBody() throws Exception {
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
@@ -283,9 +330,10 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     void shouldReturn400WhenUpdatingCompanyWithNullBody() throws Exception {
         // When & Then
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
@@ -301,12 +349,13 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andReturn().getResponse().getStatus();
+        assertEquals(500, status);
 
-        verify(companyManagementService).createCompany(any(CompanyDto.class));
+        verify(companyManagementService, times(1)).createCompany(any(CompanyDto.class));
     }
 
     @Test
@@ -323,12 +372,13 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andReturn().getResponse().getStatus();
+        assertEquals(500, status);
 
-        verify(companyManagementService).updateCompany(eq(testCompanyId), any(CompanyDto.class));
+        verify(companyManagementService, times(1)).updateCompany(eq(testCompanyId), any(CompanyDto.class));
     }
 
     @Test
@@ -340,11 +390,12 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andReturn().getResponse().getStatus();
+        assertEquals(500, status);
 
-        verify(companyManagementService).getCompanyDetails(testCompanyId);
+        verify(companyManagementService, times(1)).getCompanyDetails(testCompanyId);
     }
 
     @Test
@@ -358,22 +409,22 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        getMockMvc().perform(get("/v1/companies")
+        int status = getMockMvc().perform(get("/v1/companies")
                         .param("page", "0")
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-
-        verify(companyManagementService).getCompaniesWithFilters(any(CompanyFilter.class), any(Pageable.class));
+                .andReturn().getResponse().getStatus();
+        assertEquals(500, status);
     }
 
     @Test
     @DisplayName("Should handle invalid UUID format in path parameter")
     void shouldHandleInvalidUuidFormatInPathParameter() throws Exception {
         // When & Then
-        getMockMvc().perform(get("/v1/companies/{id}", "invalid-uuid")
+        int status = getMockMvc().perform(get("/v1/companies/{id}", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
 
         // Create a simple DTO without Instant fields to avoid serialization issues
         CompanyDto simpleDto = CompanyDto.builder()
@@ -381,43 +432,47 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .countryCode("USA")
                 .build();
 
-        getMockMvc().perform(put("/v1/companies/{id}", "invalid-uuid")
+        status = getMockMvc().perform(put("/v1/companies/{id}", "invalid-uuid")
                         .content(getObjectMapper().writeValueAsString(simpleDto))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andReturn().getResponse().getStatus();
+        assertEquals(400, status);
     }
 
     @Test
     @DisplayName("Should handle malformed pagination parameters")
     void shouldHandleMalformedPaginationParameters() throws Exception {
         // When & Then - Spring Boot handles malformed pagination gracefully, so we expect 200
-        getMockMvc().perform(get("/v1/companies")
+        int status = getMockMvc().perform(get("/v1/companies")
                         .param("page", "invalid")
                         .param("size", "invalid")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andReturn().getResponse().getStatus();
+        assertEquals(200, status);
     }
 
     @Test
     @DisplayName("Should handle negative pagination parameters")
     void shouldHandleNegativePaginationParameters() throws Exception {
         // When & Then - Spring Boot handles negative pagination gracefully, so we expect 200
-        getMockMvc().perform(get("/v1/companies")
+        int status = getMockMvc().perform(get("/v1/companies")
                         .param("page", "-1")
                         .param("size", "-10")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andReturn().getResponse().getStatus();
+        assertEquals(200, status);
     }
 
     @Test
     @DisplayName("Should handle extremely large pagination parameters")
     void shouldHandleExtremelyLargePaginationParameters() throws Exception {
         // When & Then - Spring Boot handles large pagination gracefully, so we expect 200
-        getMockMvc().perform(get("/v1/companies")
+        int status = getMockMvc().perform(get("/v1/companies")
                         .param("page", "999999999")
                         .param("size", "999999999")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andReturn().getResponse().getStatus();
+        assertEquals(200, status);
     }
 
     @Test
@@ -425,13 +480,15 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(delete("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(delete("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed());
+                .andReturn().getResponse().getStatus();
+        assertEquals(405, status); // Method Not Allowed
 
-        getMockMvc().perform(patch("/v1/companies/{id}", testCompanyId)
+        status = getMockMvc().perform(patch("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed());
+                .andReturn().getResponse().getStatus();
+        assertEquals(405, status); // Method Not Allowed
     }
 
     @Test
@@ -444,14 +501,16 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .build();
 
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .content(getObjectMapper().writeValueAsString(createRequest)))
-                .andExpect(status().isUnsupportedMediaType());
+                .andReturn().getResponse().getStatus();
+        assertEquals(415, status); // Unsupported Media Type
 
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(createRequest)))
-                .andExpect(status().isUnsupportedMediaType());
+                .andReturn().getResponse().getStatus();
+        assertEquals(415, status); // Unsupported Media Type
     }
 
     @Test
@@ -464,15 +523,17 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .build();
 
         // When & Then
-        getMockMvc().perform(post("/v1/companies")
+        int status = getMockMvc().perform(post("/v1/companies")
                         .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.TEXT_PLAIN))
-                .andExpect(status().isUnsupportedMediaType());
+                .andReturn().getResponse().getStatus();
+        assertEquals(415, status); // Unsupported Media Type
 
         UUID testCompanyId = createTestCompanyId();
-        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+        status = getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.TEXT_PLAIN))
-                .andExpect(status().isUnsupportedMediaType());
+                .andReturn().getResponse().getStatus();
+        assertEquals(415, status); // Unsupported Media Type
     }
 } 
