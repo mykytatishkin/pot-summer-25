@@ -4,9 +4,11 @@ import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.coherentsolutions.pot.insurance_service.service.CompanyManagementService;
-import com.coherentsolutions.pot.insurance_service.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.coherentsolutions.pot.insurance_service.exception.GlobalExceptionHandler;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,9 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Admin Company Management Controller Tests")
-class AdminCompanyManagementControllerTest {
+class AdminCompanyManagementControllerTest extends AbstractControllerTest {
 
     @Mock
     private CompanyManagementService companyManagementService;
@@ -45,20 +45,23 @@ class AdminCompanyManagementControllerTest {
     @InjectMocks
     private AdminCompanyManagementController controller;
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
-
     private CompanyDto testCompanyDto;
     private UUID testCompanyId;
 
+    @BeforeAll
+    static void setUpClass() {
+        // Initialize ObjectMapper once before all tests
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+    }
+
     @BeforeEach
     void setUp() {
+        // Initialize MockMvc for this test instance
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         
         testCompanyId = UUID.randomUUID();
         testCompanyDto = CompanyDto.builder()
@@ -84,7 +87,7 @@ class AdminCompanyManagementControllerTest {
                 .thenReturn(companyPage);
 
         // When & Then
-        mockMvc.perform(get("/v1/companies")
+        getMockMvc().perform(get("/v1/companies")
                         .param("page", "0")
                         .param("size", "10")
                         .param("name", "Test")
@@ -117,8 +120,8 @@ class AdminCompanyManagementControllerTest {
                 .thenReturn(testCompanyDto);
 
         // When & Then
-        mockMvc.perform(post("/v1/companies")
-                        .content(objectMapper.writeValueAsString(createRequest))
+        getMockMvc().perform(post("/v1/companies")
+                        .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -137,7 +140,7 @@ class AdminCompanyManagementControllerTest {
                 .thenReturn(testCompanyDto);
 
         // When & Then
-        mockMvc.perform(get("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -175,8 +178,8 @@ class AdminCompanyManagementControllerTest {
                 .thenReturn(updatedCompany);
 
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                        .content(objectMapper.writeValueAsString(updateRequest))
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+                        .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -199,7 +202,7 @@ class AdminCompanyManagementControllerTest {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
-        mockMvc.perform(get("/v1/companies/{id}", nonExistentId)
+        getMockMvc().perform(get("/v1/companies/{id}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
@@ -221,8 +224,8 @@ class AdminCompanyManagementControllerTest {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", nonExistentId)
-                        .content(objectMapper.writeValueAsString(updateRequest))
+        getMockMvc().perform(put("/v1/companies/{id}", nonExistentId)
+                        .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
@@ -236,7 +239,7 @@ class AdminCompanyManagementControllerTest {
         String invalidJson = "{ invalid json }";
 
         // When & Then
-        mockMvc.perform(post("/v1/companies")
+        getMockMvc().perform(post("/v1/companies")
                         .content(invalidJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -249,7 +252,7 @@ class AdminCompanyManagementControllerTest {
         String invalidJson = "{ invalid json }";
 
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(invalidJson)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -259,7 +262,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should return 400 when creating company with empty request body")
     void shouldReturn400WhenCreatingCompanyWithEmptyBody() throws Exception {
         // When & Then
-        mockMvc.perform(post("/v1/companies")
+        getMockMvc().perform(post("/v1/companies")
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -269,7 +272,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should return 400 when updating company with empty request body")
     void shouldReturn400WhenUpdatingCompanyWithEmptyBody() throws Exception {
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -279,7 +282,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should return 400 when creating company with null request body")
     void shouldReturn400WhenCreatingCompanyWithNullBody() throws Exception {
         // When & Then
-        mockMvc.perform(post("/v1/companies")
+        getMockMvc().perform(post("/v1/companies")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -288,7 +291,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should return 400 when updating company with null request body")
     void shouldReturn400WhenUpdatingCompanyWithNullBody() throws Exception {
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -306,8 +309,8 @@ class AdminCompanyManagementControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        mockMvc.perform(post("/v1/companies")
-                        .content(objectMapper.writeValueAsString(createRequest))
+        getMockMvc().perform(post("/v1/companies")
+                        .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
 
@@ -327,8 +330,8 @@ class AdminCompanyManagementControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                        .content(objectMapper.writeValueAsString(updateRequest))
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+                        .content(getObjectMapper().writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
 
@@ -343,7 +346,7 @@ class AdminCompanyManagementControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        mockMvc.perform(get("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(get("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
 
@@ -358,7 +361,7 @@ class AdminCompanyManagementControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
 
         // When & Then
-        mockMvc.perform(get("/v1/companies")
+        getMockMvc().perform(get("/v1/companies")
                         .param("page", "0")
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -371,7 +374,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should handle invalid UUID format in path parameter")
     void shouldHandleInvalidUuidFormatInPathParameter() throws Exception {
         // When & Then
-        mockMvc.perform(get("/v1/companies/{id}", "invalid-uuid")
+        getMockMvc().perform(get("/v1/companies/{id}", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
@@ -381,8 +384,8 @@ class AdminCompanyManagementControllerTest {
                 .countryCode("USA")
                 .build();
 
-        mockMvc.perform(put("/v1/companies/{id}", "invalid-uuid")
-                        .content(objectMapper.writeValueAsString(simpleDto))
+        getMockMvc().perform(put("/v1/companies/{id}", "invalid-uuid")
+                        .content(getObjectMapper().writeValueAsString(simpleDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -391,7 +394,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should handle malformed pagination parameters")
     void shouldHandleMalformedPaginationParameters() throws Exception {
         // When & Then - Spring Boot handles malformed pagination gracefully, so we expect 200
-        mockMvc.perform(get("/v1/companies")
+        getMockMvc().perform(get("/v1/companies")
                         .param("page", "invalid")
                         .param("size", "invalid")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -402,7 +405,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should handle negative pagination parameters")
     void shouldHandleNegativePaginationParameters() throws Exception {
         // When & Then - Spring Boot handles negative pagination gracefully, so we expect 200
-        mockMvc.perform(get("/v1/companies")
+        getMockMvc().perform(get("/v1/companies")
                         .param("page", "-1")
                         .param("size", "-10")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -413,7 +416,7 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should handle extremely large pagination parameters")
     void shouldHandleExtremelyLargePaginationParameters() throws Exception {
         // When & Then - Spring Boot handles large pagination gracefully, so we expect 200
-        mockMvc.perform(get("/v1/companies")
+        getMockMvc().perform(get("/v1/companies")
                         .param("page", "999999999")
                         .param("size", "999999999")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -424,11 +427,11 @@ class AdminCompanyManagementControllerTest {
     @DisplayName("Should handle unsupported HTTP methods")
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
-        mockMvc.perform(delete("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(delete("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed());
 
-        mockMvc.perform(patch("/v1/companies/{id}", testCompanyId)
+        getMockMvc().perform(patch("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed());
     }
@@ -443,12 +446,12 @@ class AdminCompanyManagementControllerTest {
                 .build();
 
         // When & Then
-        mockMvc.perform(post("/v1/companies")
-                        .content(objectMapper.writeValueAsString(createRequest)))
+        getMockMvc().perform(post("/v1/companies")
+                        .content(getObjectMapper().writeValueAsString(createRequest)))
                 .andExpect(status().isUnsupportedMediaType());
 
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                        .content(objectMapper.writeValueAsString(createRequest)))
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+                        .content(getObjectMapper().writeValueAsString(createRequest)))
                 .andExpect(status().isUnsupportedMediaType());
     }
 
@@ -462,13 +465,13 @@ class AdminCompanyManagementControllerTest {
                 .build();
 
         // When & Then
-        mockMvc.perform(post("/v1/companies")
-                        .content(objectMapper.writeValueAsString(createRequest))
+        getMockMvc().perform(post("/v1/companies")
+                        .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.TEXT_PLAIN))
                 .andExpect(status().isUnsupportedMediaType());
 
-        mockMvc.perform(put("/v1/companies/{id}", testCompanyId)
-                        .content(objectMapper.writeValueAsString(createRequest))
+        getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
+                        .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.TEXT_PLAIN))
                 .andExpect(status().isUnsupportedMediaType());
     }
