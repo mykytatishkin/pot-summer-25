@@ -34,6 +34,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,47 +43,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Admin Company Management Controller Tests")
 class AdminCompanyManagementControllerTest extends AbstractControllerTest {
 
-    @Mock
-    private CompanyManagementService companyManagementService;
-
-    @InjectMocks
-    private AdminCompanyManagementController controller;
-
-    private CompanyDto testCompanyDto;
-    private UUID testCompanyId;
+    private static CompanyManagementService companyManagementService;
+    private static AdminCompanyManagementController controller;
 
     @BeforeAll
     static void setUpClass() {
-        // Initialize ObjectMapper once before all tests
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-    }
-
-    @BeforeEach
-    void setUp() {
-        // Initialize MockMvc for this test instance
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
-                .build();
-        
-        testCompanyId = UUID.randomUUID();
-        testCompanyDto = CompanyDto.builder()
-                .id(testCompanyId)
-                .name("Test Company")
-                .status(CompanyStatus.ACTIVE)
-                .countryCode("USA")
-                .email("test@company.com")
-                .website("https://testcompany.com")
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+        companyManagementService = mock(CompanyManagementService.class);
+        controller = new AdminCompanyManagementController(companyManagementService);
+        initializeCommonObjects(controller);
     }
 
     @Test
     @DisplayName("Should get companies with search filters")
     void shouldGetCompaniesWithSearchFilters() throws Exception {
+        // Reset mocks to ensure clean state
+        resetMocks(companyManagementService);
+        
         // Given
+        CompanyDto testCompanyDto = createTestCompanyDto();
+        UUID testCompanyId = testCompanyDto.getId();
         Pageable pageable = PageRequest.of(0, 10);
         Page<CompanyDto> companyPage = new PageImpl<>(List.of(testCompanyDto), pageable, 1);
 
@@ -110,7 +90,12 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @Test
     @DisplayName("Should create new company")
     void shouldCreateNewCompany() throws Exception {
+        // Reset mocks to ensure clean state
+        resetMocks(companyManagementService);
+        
         // Given
+        CompanyDto testCompanyDto = createTestCompanyDto();
+        UUID testCompanyId = testCompanyDto.getId();
         CompanyDto createRequest = CompanyDto.builder()
                 .name("New Company")
                 .countryCode("USA")
@@ -138,6 +123,8 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @DisplayName("Should get company details by ID")
     void shouldGetCompanyDetailsById() throws Exception {
         // Given
+        CompanyDto testCompanyDto = createTestCompanyDto();
+        UUID testCompanyId = testCompanyDto.getId();
         when(companyManagementService.getCompanyDetails(testCompanyId))
                 .thenReturn(testCompanyDto);
 
@@ -167,6 +154,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .website("https://updatedcompany.com")
                 .build();
 
+        UUID testCompanyId = createTestCompanyId();
         CompanyDto updatedCompany = CompanyDto.builder()
                 .id(testCompanyId)
                 .name("Updated Company")
@@ -254,6 +242,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
         String invalidJson = "{ invalid json }";
 
         // When & Then
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(invalidJson)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -274,6 +263,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @DisplayName("Should return 400 when updating company with empty request body")
     void shouldReturn400WhenUpdatingCompanyWithEmptyBody() throws Exception {
         // When & Then
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -293,6 +283,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @DisplayName("Should return 400 when updating company with null request body")
     void shouldReturn400WhenUpdatingCompanyWithNullBody() throws Exception {
         // When & Then
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -328,6 +319,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                 .countryCode("CAN")
                 .build();
 
+        UUID testCompanyId = createTestCompanyId();
         when(companyManagementService.updateCompany(eq(testCompanyId), any(CompanyDto.class)))
                 .thenThrow(new RuntimeException("Database connection failed"));
 
@@ -344,6 +336,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @DisplayName("Should return 500 when service throws unexpected exception during get details")
     void shouldReturn500WhenServiceThrowsUnexpectedExceptionDuringGetDetails() throws Exception {
         // Given
+        UUID testCompanyId = createTestCompanyId();
         when(companyManagementService.getCompanyDetails(testCompanyId))
                 .thenThrow(new RuntimeException("Database connection failed"));
 
@@ -358,6 +351,9 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @Test
     @DisplayName("Should return 500 when service throws unexpected exception during get companies")
     void shouldReturn500WhenServiceThrowsUnexpectedExceptionDuringGetCompanies() throws Exception {
+        // Reset mocks to ensure clean state
+        resetMocks(companyManagementService);
+        
         // Given
         when(companyManagementService.getCompaniesWithFilters(any(CompanyFilter.class), any(Pageable.class)))
                 .thenThrow(new RuntimeException("Database connection failed"));
@@ -429,6 +425,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     @DisplayName("Should handle unsupported HTTP methods")
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(delete("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed());
@@ -452,6 +449,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                         .content(getObjectMapper().writeValueAsString(createRequest)))
                 .andExpect(status().isUnsupportedMediaType());
 
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(createRequest)))
                 .andExpect(status().isUnsupportedMediaType());
@@ -472,6 +470,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
                         .contentType(MediaType.TEXT_PLAIN))
                 .andExpect(status().isUnsupportedMediaType());
 
+        UUID testCompanyId = createTestCompanyId();
         getMockMvc().perform(put("/v1/companies/{id}", testCompanyId)
                         .content(getObjectMapper().writeValueAsString(createRequest))
                         .contentType(MediaType.TEXT_PLAIN))
