@@ -170,4 +170,126 @@ class CompanyDtoTest {
         assertThat(companyDto.getAddressData()).isNull();
         assertThat(companyDto.getPhoneData()).isNull();
     }
+
+    @Test
+    @DisplayName("Should create DTO with null name - no validation at DTO level")
+    void shouldCreateDtoWithNullName() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name(null)
+                .countryCode("USA")
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isNull();
+        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
+    }
+
+    @Test
+    @DisplayName("Should create DTO with null countryCode - no validation at DTO level")
+    void shouldCreateDtoWithNullCountryCode() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name("Test Company")
+                .countryCode(null)
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isEqualTo("Test Company");
+        assertThat(companyDto.getCountryCode()).isNull();
+    }
+
+    @Test
+    @DisplayName("Should create DTO with empty name - no validation at DTO level")
+    void shouldCreateDtoWithEmptyName() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name("")
+                .countryCode("USA")
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isEmpty();
+        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
+    }
+
+    @Test
+    @DisplayName("Should create DTO with empty countryCode - no validation at DTO level")
+    void shouldCreateDtoWithEmptyCountryCode() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name("Test Company")
+                .countryCode("")
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isEqualTo("Test Company");
+        assertThat(companyDto.getCountryCode()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should create DTO with invalid email format - no validation at DTO level")
+    void shouldCreateDtoWithInvalidEmailFormat() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name("Test Company")
+                .countryCode("USA")
+                .email("invalid-email-format")
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isEqualTo("Test Company");
+        assertThat(companyDto.getCountryCode()).isEqualTo("USA");
+        assertThat(companyDto.getEmail()).isEqualTo("invalid-email-format");
+    }
+
+    @Test
+    @DisplayName("Should create DTO with all null required fields - no validation at DTO level")
+    void shouldCreateDtoWithAllNullRequiredFields() {
+        // When
+        CompanyDto companyDto = CompanyDto.builder()
+                .name(null)
+                .countryCode(null)
+                .build();
+
+        // Then
+        assertThat(companyDto).isNotNull();
+        assertThat(companyDto.getName()).isNull();
+        assertThat(companyDto.getCountryCode()).isNull();
+    }
+
+    @Test
+    @DisplayName("Should demonstrate validation strategy - DTO has no validation, Entity has @NotBlank")
+    void shouldDemonstrateValidationStrategy() {
+        // Given: CompanyDto has no validation annotations
+        CompanyDto dtoWithNullName = CompanyDto.builder()
+                .name(null)  // This is allowed at DTO level
+                .countryCode("USA")
+                .build();
+
+        CompanyDto dtoWithEmptyName = CompanyDto.builder()
+                .name("")    // This is allowed at DTO level
+                .countryCode("USA")
+                .build();
+
+        CompanyDto dtoWithValidName = CompanyDto.builder()
+                .name("Valid Company")  // This is allowed at DTO level
+                .countryCode("USA")
+                .build();
+
+        // Then: All DTOs can be created without validation errors
+        assertThat(dtoWithNullName).isNotNull();
+        assertThat(dtoWithNullName.getName()).isNull();
+
+        assertThat(dtoWithEmptyName).isNotNull();
+        assertThat(dtoWithEmptyName.getName()).isEmpty();
+
+        assertThat(dtoWithValidName).isNotNull();
+        assertThat(dtoWithValidName.getName()).isEqualTo("Valid Company");
+    }
 } 
