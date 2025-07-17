@@ -1,6 +1,6 @@
-package com.coherentsolutions.pot.insurance_service.controller;
+package com.coherentsolutions.pot.insurance_service.integration;
 
-import com.coherentsolutions.pot.insurance_service.containers.PostgresTestContainer;
+import com.coherentsolutions.pot.insurance_service.integration.containers.PostgresTestContainer;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;

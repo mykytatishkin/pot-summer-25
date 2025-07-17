@@ -1,4 +1,4 @@
-package com.coherentsolutions.pot.insurance_service.service;
+package com.coherentsolutions.pot.insurance_service.unit.service;
 
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
@@ -8,6 +8,7 @@ import com.coherentsolutions.pot.insurance_service.model.Address;
 import com.coherentsolutions.pot.insurance_service.model.Company;
 import com.coherentsolutions.pot.insurance_service.model.Phone;
 import com.coherentsolutions.pot.insurance_service.repository.CompanyRepository;
+import com.coherentsolutions.pot.insurance_service.service.CompanyManagementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

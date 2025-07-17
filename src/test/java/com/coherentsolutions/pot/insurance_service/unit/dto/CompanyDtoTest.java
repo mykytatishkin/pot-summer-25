@@ -1,5 +1,8 @@
-package com.coherentsolutions.pot.insurance_service.dto;
+package com.coherentsolutions.pot.insurance_service.unit.dto;
 
+import com.coherentsolutions.pot.insurance_service.dto.AddressDto;
+import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
+import com.coherentsolutions.pot.insurance_service.dto.PhoneDto;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

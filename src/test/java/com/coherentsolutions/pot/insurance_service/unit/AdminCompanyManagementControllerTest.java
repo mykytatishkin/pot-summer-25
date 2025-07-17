@@ -1,5 +1,7 @@
-package com.coherentsolutions.pot.insurance_service.controller;
+package com.coherentsolutions.pot.insurance_service.unit;
 
+import com.coherentsolutions.pot.insurance_service.unit.AbstractControllerTest;
+import com.coherentsolutions.pot.insurance_service.controller.AdminCompanyManagementController;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;

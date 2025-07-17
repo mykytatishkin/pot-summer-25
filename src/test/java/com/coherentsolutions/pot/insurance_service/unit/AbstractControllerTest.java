@@ -1,4 +1,4 @@
-package com.coherentsolutions.pot.insurance_service.controller;
+package com.coherentsolutions.pot.insurance_service.unit;
 
 import com.coherentsolutions.pot.insurance_service.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
