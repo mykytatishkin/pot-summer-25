@@ -5,6 +5,7 @@ import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -134,11 +136,18 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .getResponse()
                 .getContentAsString();
 
-        // Parse and validate search results
+        // Parse and validate search results using TypeReference
         var searchByNameResult = objectMapper.readTree(searchByNameResponse);
         assertTrue(searchByNameResult.has("content"));
         assertTrue(searchByNameResult.get("content").isArray());
-        assertEquals("Alpha Company", searchByNameResult.get("content").get(0).get("name").asText());
+        
+        // Map the content array to List<CompanyDto> using TypeReference
+        List<CompanyDto> searchByNameCompanies = objectMapper.readValue(
+                searchByNameResult.get("content").toString(),
+                new TypeReference<List<CompanyDto>>() {}
+        );
+        assertFalse(searchByNameCompanies.isEmpty());
+        assertEquals("Alpha Company", searchByNameCompanies.get(0).getName());
 
         // When & Then - Search by country code
         String searchByCountryResponse = mockMvc.perform(get("/v1/companies")
@@ -151,11 +160,18 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .getResponse()
                 .getContentAsString();
 
-        // Parse and validate search results
+        // Parse and validate search results using TypeReference
         var searchByCountryResult = objectMapper.readTree(searchByCountryResponse);
         assertTrue(searchByCountryResult.has("content"));
         assertTrue(searchByCountryResult.get("content").isArray());
-        assertEquals("CAN", searchByCountryResult.get("content").get(0).get("countryCode").asText());
+        
+        // Map the content array to List<CompanyDto> using TypeReference
+        List<CompanyDto> searchByCountryCompanies = objectMapper.readValue(
+                searchByCountryResult.get("content").toString(),
+                new TypeReference<List<CompanyDto>>() {}
+        );
+        assertFalse(searchByCountryCompanies.isEmpty());
+        assertEquals("CAN", searchByCountryCompanies.get(0).getCountryCode());
     }
 
     @Test
