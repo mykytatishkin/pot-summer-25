@@ -1,8 +1,8 @@
 package com.coherentsolutions.pot.insurance_service.unit.dto;
 
-import com.coherentsolutions.pot.insurance_service.dto.AddressDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
-import com.coherentsolutions.pot.insurance_service.dto.PhoneDto;
+import com.coherentsolutions.pot.insurance_service.model.Address;
+import com.coherentsolutions.pot.insurance_service.model.Phone;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,24 +18,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompanyDtoTest {
 
     private UUID testCompanyId;
-    private AddressDto testAddressDto;
-    private PhoneDto testPhoneDto;
+    private Address testAddress;
+    private Phone testPhone;
 
     @BeforeEach
     void setUp() {
         testCompanyId = UUID.randomUUID();
-        testAddressDto = AddressDto.builder()
-                .country("USA")
-                .city("New York")
-                .street("123 Main St")
-                .building("Building A")
-                .room("Room 101")
-                .build();
+        testAddress = new Address();
+        testAddress.setCountry("USA");
+        testAddress.setCity("New York");
+        testAddress.setStreet("123 Main St");
+        testAddress.setBuilding("Building A");
+        testAddress.setRoom("Room 101");
 
-        testPhoneDto = PhoneDto.builder()
-                .code("+1")
-                .number("555-1234")
-                .build();
+        testPhone = new Phone();
+        testPhone.setCode("+1");
+        testPhone.setNumber("555-1234");
     }
 
     @Test
@@ -55,8 +53,8 @@ class CompanyDtoTest {
                 .email("test@company.com")
                 .website("https://testcompany.com")
                 .status(CompanyStatus.ACTIVE)
-                .addressData(List.of(testAddressDto))
-                .phoneData(List.of(testPhoneDto))
+                .addressData(List.of(testAddress))
+                .phoneData(List.of(testPhone))
                 .createdBy(createdBy)
                 .createdAt(createdAt)
                 .updatedBy(updatedBy)
@@ -127,22 +125,20 @@ class CompanyDtoTest {
     @DisplayName("Should handle multiple addresses and phones")
     void shouldHandleMultipleAddressesAndPhones() {
         // Given
-        AddressDto address2 = AddressDto.builder()
-                .country("Canada")
-                .city("Toronto")
-                .street("456 Oak Ave")
-                .build();
+        Address address2 = new Address();
+        address2.setCountry("Canada");
+        address2.setCity("Toronto");
+        address2.setStreet("456 Oak Ave");
 
-        PhoneDto phone2 = PhoneDto.builder()
-                .code("+1")
-                .number("555-5678")
-                .build();
+        Phone phone2 = new Phone();
+        phone2.setCode("+1");
+        phone2.setNumber("555-5678");
 
         // When
         CompanyDto companyDto = CompanyDto.builder()
                 .name("Test Company")
-                .addressData(List.of(testAddressDto, address2))
-                .phoneData(List.of(testPhoneDto, phone2))
+                .addressData(List.of(testAddress, address2))
+                .phoneData(List.of(testPhone, phone2))
                 .build();
 
         // Then

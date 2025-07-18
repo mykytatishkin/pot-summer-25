@@ -60,11 +60,11 @@ public class AdminCompanyManagementController {
     @PostMapping("/{id}/reactivate")
     public CompanyDto reactivateCompany(@PathVariable UUID id, @RequestBody CompanyReactivationRequest request) {
         return companyManagementService.reactivateCompany(id, request);
+    }
 
     @GetMapping("/{id}/users")
     public Page<UserDto> getUsersOfCompany(@PathVariable UUID id, UserFilter filter, Pageable pageable) {
         filter.setCompanyId(id);
         return userManagementService.getUsersWithFilters(filter, pageable);
-
     }
 }

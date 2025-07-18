@@ -6,6 +6,7 @@ import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.coherentsolutions.pot.insurance_service.service.CompanyManagementService;
+import com.coherentsolutions.pot.insurance_service.service.UserManagementService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.coherentsolutions.pot.insurance_service.exception.GlobalExceptionHandler;
@@ -45,12 +46,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class AdminCompanyManagementControllerTest extends AbstractControllerTest {
 
     private static CompanyManagementService companyManagementService;
+    private static UserManagementService userManagementService;
     private static AdminCompanyManagementController controller;
 
     @BeforeAll
     static void setUpClass() {
         companyManagementService = mock(CompanyManagementService.class);
-        controller = new AdminCompanyManagementController(companyManagementService);
+        userManagementService = mock(UserManagementService.class);
+        controller = new AdminCompanyManagementController(companyManagementService, userManagementService);
         initializeCommonObjects(controller);
     }
     

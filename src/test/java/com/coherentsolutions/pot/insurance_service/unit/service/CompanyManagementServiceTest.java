@@ -186,7 +186,7 @@ class CompanyManagementServiceTest {
         assertThatThrownBy(() -> companyManagementService.getCompanyDetails(testCompanyId))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
-                .hasMessage("Company not found");
+                .hasMessage("404 NOT_FOUND \"Company not found\"");
 
         // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
@@ -256,7 +256,7 @@ class CompanyManagementServiceTest {
         assertThatThrownBy(() -> companyManagementService.updateCompany(testCompanyId, updateRequest))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
-                .hasMessage("Company not found");
+                .hasMessage("404 NOT_FOUND \"Company not found\"");
 
         // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
