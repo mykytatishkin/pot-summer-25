@@ -1,5 +1,15 @@
 package com.coherentsolutions.pot.insurance_service.service;
 
+import java.time.Instant;
+import java.util.UUID;
+import java.util.function.Consumer;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyReactivationRequest;
 import com.coherentsolutions.pot.insurance_service.mapper.CompanyMapper;
@@ -22,6 +32,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import com.coherentsolutions.pot.insurance_service.dto.CompanyFilter;
+import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
+import com.coherentsolutions.pot.insurance_service.mapper.CompanyMapper;
+import com.coherentsolutions.pot.insurance_service.model.Company;
+import com.coherentsolutions.pot.insurance_service.repository.CompanyRepository;
+import com.coherentsolutions.pot.insurance_service.repository.CompanySpecification;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -55,14 +73,10 @@ public class CompanyManagementService {
         }
 
         // Update address data
-        if (request.getAddressData() != null) {
-            company.setAddressData(companyMapper.toAddressList(request.getAddressData()));
-        }
+        company.setAddressData(request.getAddressData());
 
         // Update phone data
-        if (request.getPhoneData() != null) {
-            company.setPhoneData(companyMapper.toPhoneList(request.getPhoneData()));
-        }
+        company.setPhoneData(request.getPhoneData());
 
         Company updated = companyRepository.save(company);
         return companyMapper.toCompanyDto(updated);
@@ -70,8 +84,8 @@ public class CompanyManagementService {
 
     public CompanyDto createCompany(CompanyDto companyDto) {
         Company company = companyMapper.toEntity(companyDto);
-        company.setAddressData(companyMapper.toAddressList(companyDto.getAddressData()));
-        company.setPhoneData(companyMapper.toPhoneList(companyDto.getPhoneData()));
+        company.setAddressData(companyDto.getAddressData());
+        company.setPhoneData(companyDto.getPhoneData());
         company.setStatus(CompanyStatus.ACTIVE);
         companyRepository.save(company);
 
