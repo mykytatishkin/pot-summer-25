@@ -5,7 +5,6 @@ import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyReactivationRequest;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 @Import(IntegrationTestConfiguration.class)
 @DisplayName("Admin Company Management Controller Integration Tests")
-class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContainer {
+class AdminCompanyManagementControllerIT extends PostgresTestContainer {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
