@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Company Filter Tests")
 class CompanyFilterTest {
@@ -25,13 +25,13 @@ class CompanyFilterTest {
     @DisplayName("Should create empty filter")
     void shouldCreateEmptyFilter() {
         // Then
-        assertThat(filter.getName()).isNull();
-        assertThat(filter.getCountryCode()).isNull();
-        assertThat(filter.getStatus()).isNull();
-        assertThat(filter.getCreatedFrom()).isNull();
-        assertThat(filter.getCreatedTo()).isNull();
-        assertThat(filter.getUpdatedFrom()).isNull();
-        assertThat(filter.getUpdatedTo()).isNull();
+        assertNull(filter.getName());
+        assertNull(filter.getCountryCode());
+        assertNull(filter.getStatus());
+        assertNull(filter.getCreatedFrom());
+        assertNull(filter.getCreatedTo());
+        assertNull(filter.getUpdatedFrom());
+        assertNull(filter.getUpdatedTo());
     }
 
     @Test
@@ -44,7 +44,7 @@ class CompanyFilterTest {
         filter.setName(name);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(name);
+        assertEquals(name, filter.getName());
     }
 
     @Test
@@ -57,7 +57,7 @@ class CompanyFilterTest {
         filter.setCountryCode(countryCode);
 
         // Then
-        assertThat(filter.getCountryCode()).isEqualTo(countryCode);
+        assertEquals(countryCode, filter.getCountryCode());
     }
 
     @Test
@@ -70,7 +70,7 @@ class CompanyFilterTest {
         filter.setStatus(status);
 
         // Then
-        assertThat(filter.getStatus()).isEqualTo(status);
+        assertEquals(status, filter.getStatus());
     }
 
     @Test
@@ -89,10 +89,10 @@ class CompanyFilterTest {
         filter.setUpdatedTo(updatedTo);
 
         // Then
-        assertThat(filter.getCreatedFrom()).isEqualTo(createdFrom);
-        assertThat(filter.getCreatedTo()).isEqualTo(createdTo);
-        assertThat(filter.getUpdatedFrom()).isEqualTo(updatedFrom);
-        assertThat(filter.getUpdatedTo()).isEqualTo(updatedTo);
+        assertEquals(createdFrom, filter.getCreatedFrom());
+        assertEquals(createdTo, filter.getCreatedTo());
+        assertEquals(updatedFrom, filter.getUpdatedFrom());
+        assertEquals(updatedTo, filter.getUpdatedTo());
     }
 
     @Test
@@ -108,13 +108,13 @@ class CompanyFilterTest {
         filter.setUpdatedTo(null);
 
         // Then
-        assertThat(filter.getName()).isNull();
-        assertThat(filter.getCountryCode()).isNull();
-        assertThat(filter.getStatus()).isNull();
-        assertThat(filter.getCreatedFrom()).isNull();
-        assertThat(filter.getCreatedTo()).isNull();
-        assertThat(filter.getUpdatedFrom()).isNull();
-        assertThat(filter.getUpdatedTo()).isNull();
+        assertNull(filter.getName());
+        assertNull(filter.getCountryCode());
+        assertNull(filter.getStatus());
+        assertNull(filter.getCreatedFrom());
+        assertNull(filter.getCreatedTo());
+        assertNull(filter.getUpdatedFrom());
+        assertNull(filter.getUpdatedTo());
     }
 
     @Test
@@ -122,13 +122,13 @@ class CompanyFilterTest {
     void shouldHandleDifferentCountryCodes() {
         // When
         filter.setCountryCode("USA");
-        assertThat(filter.getCountryCode()).isEqualTo("USA");
+        assertEquals("USA", filter.getCountryCode());
 
         filter.setCountryCode("CAN");
-        assertThat(filter.getCountryCode()).isEqualTo("CAN");
+        assertEquals("CAN", filter.getCountryCode());
 
         filter.setCountryCode("GBR");
-        assertThat(filter.getCountryCode()).isEqualTo("GBR");
+        assertEquals("GBR", filter.getCountryCode());
     }
 
     @Test
@@ -136,10 +136,10 @@ class CompanyFilterTest {
     void shouldHandleDifferentCompanyStatuses() {
         // When
         filter.setStatus(CompanyStatus.ACTIVE);
-        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
+        assertEquals(CompanyStatus.ACTIVE, filter.getStatus());
 
         filter.setStatus(CompanyStatus.DEACTIVATED);
-        assertThat(filter.getStatus()).isEqualTo(CompanyStatus.DEACTIVATED);
+        assertEquals(CompanyStatus.DEACTIVATED, filter.getStatus());
     }
 
     @Test
@@ -150,8 +150,8 @@ class CompanyFilterTest {
         filter.setCountryCode("");
 
         // Then
-        assertThat(filter.getName()).isEmpty();
-        assertThat(filter.getCountryCode()).isEmpty();
+        assertTrue(filter.getName().isEmpty());
+        assertTrue(filter.getCountryCode().isEmpty());
     }
 
     @Test
@@ -162,8 +162,8 @@ class CompanyFilterTest {
         filter.setCountryCode("  ");
 
         // Then
-        assertThat(filter.getName()).isEqualTo("  ");
-        assertThat(filter.getCountryCode()).isEqualTo("  ");
+        assertEquals("  ", filter.getName());
+        assertEquals("  ", filter.getCountryCode());
     }
 
     @Test
@@ -174,8 +174,8 @@ class CompanyFilterTest {
         filter.setCountryCode("usa");
 
         // Then
-        assertThat(filter.getName()).isEqualTo("Test Company");
-        assertThat(filter.getCountryCode()).isEqualTo("usa");
+        assertEquals("Test Company", filter.getName());
+        assertEquals("usa", filter.getCountryCode());
     }
 
     @Test
@@ -192,16 +192,16 @@ class CompanyFilterTest {
         filter.setCountryCode(initialCountryCode);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(initialName);
-        assertThat(filter.getCountryCode()).isEqualTo(initialCountryCode);
+        assertEquals(initialName, filter.getName());
+        assertEquals(initialCountryCode, filter.getCountryCode());
 
         // When
         filter.setName(updatedName);
         filter.setCountryCode(updatedCountryCode);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(updatedName);
-        assertThat(filter.getCountryCode()).isEqualTo(updatedCountryCode);
+        assertEquals(updatedName, filter.getName());
+        assertEquals(updatedCountryCode, filter.getCountryCode());
     }
 
     @Test
@@ -222,10 +222,10 @@ class CompanyFilterTest {
         filter.setCreatedTo(createdTo);
 
         // Then
-        assertThat(filter.getName()).isEqualTo(companyName);
-        assertThat(filter.getCountryCode()).isEqualTo(countryCode);
-        assertThat(filter.getStatus()).isEqualTo(status);
-        assertThat(filter.getCreatedFrom()).isEqualTo(createdFrom);
-        assertThat(filter.getCreatedTo()).isEqualTo(createdTo);
+        assertEquals(companyName, filter.getName());
+        assertEquals(countryCode, filter.getCountryCode());
+        assertEquals(status, filter.getStatus());
+        assertEquals(createdFrom, filter.getCreatedFrom());
+        assertEquals(createdTo, filter.getCreatedTo());
     }
 } 
