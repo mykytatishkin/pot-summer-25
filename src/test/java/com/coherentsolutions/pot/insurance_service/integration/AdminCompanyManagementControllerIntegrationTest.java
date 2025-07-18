@@ -60,15 +60,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         String responseJson = mockMvc.perform(post("/v1/companies")
                         .content(objectMapper.writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        // Assert response status and content type
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
-                .content(objectMapper.writeValueAsString(createRequest))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate response
         CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
@@ -84,14 +79,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         // When & Then - Retrieve the created company
         String getResponseJson = mockMvc.perform(get("/v1/companies/{id}", companyId)
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        // Assert response status
-        assertEquals(200, mockMvc.perform(get("/v1/companies/{id}", companyId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate retrieved company
         CompanyDto retrievedCompany = objectMapper.readValue(getResponseJson, CompanyDto.class);
@@ -122,15 +113,15 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .build();
 
         // Create companies
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(company1))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isCreated());
 
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(company2))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isCreated());
 
         // When & Then - Search by name
         String searchByNameResponse = mockMvc.perform(get("/v1/companies")
@@ -138,16 +129,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                         .param("page", "0")
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        assertEquals(200, mockMvc.perform(get("/v1/companies")
-                .param("name", "Alpha")
-                .param("page", "0")
-                .param("size", "10")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate search results
         var searchByNameResult = objectMapper.readTree(searchByNameResponse);
@@ -161,16 +146,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                         .param("page", "0")
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        assertEquals(200, mockMvc.perform(get("/v1/companies")
-                .param("countryCode", "CAN")
-                .param("page", "0")
-                .param("size", "10")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate search results
         var searchByCountryResult = objectMapper.readTree(searchByCountryResponse);
@@ -192,14 +171,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         String responseJson = mockMvc.perform(post("/v1/companies")
                         .content(objectMapper.writeValueAsString(createRequest))
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
-                .content(objectMapper.writeValueAsString(createRequest))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
         UUID companyId = createdCompany.getId();
@@ -216,14 +191,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         String updateResponseJson = mockMvc.perform(put("/v1/companies/{id}", companyId)
                         .content(objectMapper.writeValueAsString(updateRequest))
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        assertEquals(200, mockMvc.perform(put("/v1/companies/{id}", companyId)
-                .content(objectMapper.writeValueAsString(updateRequest))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate updated company
         CompanyDto updatedCompany = objectMapper.readValue(updateResponseJson, CompanyDto.class);
@@ -236,13 +207,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         // Verify the update persisted by retrieving the company
         String getResponseJson = mockMvc.perform(get("/v1/companies/{id}", companyId)
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
-        assertEquals(200, mockMvc.perform(get("/v1/companies/{id}", companyId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
 
         // Parse and validate retrieved company
         CompanyDto retrievedCompany = objectMapper.readValue(getResponseJson, CompanyDto.class);
@@ -257,9 +225,9 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         UUID nonExistentId = UUID.randomUUID();
 
         // When & Then
-        assertEquals(404, mockMvc.perform(get("/v1/companies/{id}", nonExistentId)
+        mockMvc.perform(get("/v1/companies/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -273,10 +241,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .build();
 
         // When & Then
-        assertEquals(404, mockMvc.perform(put("/v1/companies/{id}", nonExistentId)
+        mockMvc.perform(put("/v1/companies/{id}", nonExistentId)
                 .content(objectMapper.writeValueAsString(updateRequest))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -286,10 +254,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         String invalidJson = "{ invalid json }";
 
         // When & Then
-        assertEquals(400, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(invalidJson)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -299,102 +267,102 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
         String invalidJson = "{ invalid json }";
 
         // When & Then
-        assertEquals(400, mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
                 .content(invalidJson)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should return 400 when creating company with empty request body")
     void shouldReturn400WhenCreatingCompanyWithEmptyBody() throws Exception {
         // When & Then
-        assertEquals(400, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content("")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should return 400 when updating company with empty request body")
     void shouldReturn400WhenUpdatingCompanyWithEmptyBody() throws Exception {
         // When & Then
-        assertEquals(400, mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
                 .content("")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should return 400 when creating company with null request body")
     void shouldReturn400WhenCreatingCompanyWithNullBody() throws Exception {
         // When & Then
-        assertEquals(400, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should return 400 when updating company with null request body")
     void shouldReturn400WhenUpdatingCompanyWithNullBody() throws Exception {
         // When & Then
-        assertEquals(400, mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should handle invalid UUID format in path parameter")
     void shouldHandleInvalidUuidFormatInPathParameter() throws Exception {
         // When & Then
-        assertEquals(400, mockMvc.perform(get("/v1/companies/{id}", "invalid-uuid")
+        mockMvc.perform(get("/v1/companies/{id}", "invalid-uuid")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
 
         CompanyDto simpleDto = CompanyDto.builder()
                 .name("Test Company")
                 .countryCode("USA")
                 .build();
 
-        assertEquals(400, mockMvc.perform(put("/v1/companies/{id}", "invalid-uuid")
+        mockMvc.perform(put("/v1/companies/{id}", "invalid-uuid")
                 .content(objectMapper.writeValueAsString(simpleDto))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should handle malformed pagination parameters")
     void shouldHandleMalformedPaginationParameters() throws Exception {
         // When & Then - Spring Boot handles malformed pagination gracefully
-        assertEquals(200, mockMvc.perform(get("/v1/companies")
+        mockMvc.perform(get("/v1/companies")
                 .param("page", "invalid")
                 .param("size", "invalid")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Should handle negative pagination parameters")
     void shouldHandleNegativePaginationParameters() throws Exception {
         // When & Then - Spring Boot handles negative pagination gracefully
-        assertEquals(200, mockMvc.perform(get("/v1/companies")
+        mockMvc.perform(get("/v1/companies")
                 .param("page", "-1")
                 .param("size", "-10")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Should handle unsupported HTTP methods")
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
-        assertEquals(405, mockMvc.perform(delete("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(delete("/v1/companies/{id}", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isMethodNotAllowed());
 
-        assertEquals(405, mockMvc.perform(patch("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(patch("/v1/companies/{id}", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
@@ -407,13 +375,13 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .build();
 
         // When & Then
-        assertEquals(415, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(createRequest)))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isUnsupportedMediaType());
 
-        assertEquals(415, mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
                 .content(objectMapper.writeValueAsString(createRequest)))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
@@ -426,15 +394,15 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .build();
 
         // When & Then
-        assertEquals(415, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(createRequest))
                 .contentType(MediaType.TEXT_PLAIN))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isUnsupportedMediaType());
 
-        assertEquals(415, mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
+        mockMvc.perform(put("/v1/companies/{id}", UUID.randomUUID())
                 .content(objectMapper.writeValueAsString(createRequest))
                 .contentType(MediaType.TEXT_PLAIN))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
@@ -448,10 +416,10 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .build();
 
         // Create the first company successfully
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(createRequest))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus());
+                .andExpect(status().isCreated());
 
         // Try to create another company with the same email (assuming unique constraint on email)
         CompanyDto duplicateRequest = CompanyDto.builder()
@@ -460,9 +428,9 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .email("test@company.com") // Same email
                 .build();
 
-        assertEquals(201, mockMvc.perform(post("/v1/companies")
+        mockMvc.perform(post("/v1/companies")
                 .content(objectMapper.writeValueAsString(duplicateRequest))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus()); // Since there's no unique constraint, this should succeed
+                .andExpect(status().isCreated()); // Since there's no unique constraint, this should succeed
     }
 } 
