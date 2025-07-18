@@ -74,11 +74,14 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.deactivateCompany(companyId);
 
         // Then
+        // Assertions first
         assertNotNull(result);
+        assertEquals(CompanyStatus.DEACTIVATED, testCompany.getStatus());
+
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(companyId);
         verify(companyRepository).save(testCompany);
         verify(userRepository).updateUserStatusByCompanyId(companyId, UserStatus.INACTIVE);
-        assertEquals(CompanyStatus.DEACTIVATED, testCompany.getStatus());
     }
 
     @Test
@@ -122,11 +125,14 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.reactivateCompany(companyId, request);
 
         // Then
+        // Assertions first
         assertNotNull(result);
+        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
+
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(companyId);
         verify(companyRepository).save(testCompany);
         verify(userRepository).updateUserStatusByCompanyId(companyId, UserStatus.ACTIVE);
-        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
     }
 
     @Test
@@ -146,11 +152,14 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.reactivateCompany(companyId, request);
 
         // Then
+        // Assertions first
         assertNotNull(result);
+        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
+
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(companyId);
         verify(companyRepository).save(testCompany);
         verify(userRepository).updateUserStatusByIds(selectedUserIds, UserStatus.ACTIVE);
-        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
     }
 
     @Test
@@ -232,11 +241,14 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.reactivateCompany(companyId, request);
 
         // Then
+        // Assertions first
         assertNotNull(result);
+        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
+
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(companyId);
         verify(companyRepository).save(testCompany);
         verify(userRepository, never()).updateUserStatusByCompanyId(any(), any());
         verify(userRepository, never()).updateUserStatusByIds(any(), any());
-        assertEquals(CompanyStatus.ACTIVE, testCompany.getStatus());
     }
 } 

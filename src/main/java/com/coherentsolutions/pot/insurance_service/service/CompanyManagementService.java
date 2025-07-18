@@ -64,7 +64,6 @@ public class CompanyManagementService {
             company.setPhoneData(companyMapper.toPhoneList(request.getPhoneData()));
         }
 
-        company.setUpdatedAt(Instant.now());
         Company updated = companyRepository.save(company);
         return companyMapper.toCompanyDto(updated);
     }

@@ -110,9 +110,12 @@ class CompanyManagementServiceTest {
         Page<CompanyDto> result = companyManagementService.getCompaniesWithFilters(filter, pageable);
 
         // Then
+        // Assertions first
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0)).isEqualTo(testCompanyDto);
+
+        // Verifications second
         verify(companyRepository).findAll(any(Specification.class), eq(pageable));
         verify(companyMapper).toCompanyDto(testCompany);
     }
@@ -141,8 +144,11 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.createCompany(createRequest);
 
         // Then
+        // Assertions first
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(testCompanyDto);
+
+        // Verifications second
         verify(companyMapper).toEntity(createRequest);
         verify(companyRepository).save(newCompany);
         verify(companyMapper).toCompanyDto(newCompany);
@@ -159,8 +165,11 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.getCompanyDetails(testCompanyId);
 
         // Then
+        // Assertions first
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(testCompanyDto);
+
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyMapper).toCompanyDto(testCompany);
     }
@@ -173,10 +182,12 @@ class CompanyManagementServiceTest {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
+        // Assertions first
         assertThatThrownBy(() -> companyManagementService.getCompanyDetails(testCompanyId))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND);
 
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
     }
 
@@ -215,12 +226,14 @@ class CompanyManagementServiceTest {
         CompanyDto result = companyManagementService.updateCompany(testCompanyId, updateRequest);
 
         // Then
+        // Assertions first
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Updated Company");
         assertThat(result.getCountryCode()).isEqualTo("CAN");
         assertThat(result.getEmail()).isEqualTo("updated@company.com");
         assertThat(result.getWebsite()).isEqualTo("https://updatedcompany.com");
 
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyRepository).save(any(Company.class));
         verify(companyMapper).toCompanyDto(updatedCompany);
@@ -238,10 +251,12 @@ class CompanyManagementServiceTest {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
+        // Assertions first
         assertThatThrownBy(() -> companyManagementService.updateCompany(testCompanyId, updateRequest))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND);
 
+        // Verifications second
         verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyRepository, never()).save(any());
     }
