@@ -2,6 +2,7 @@ package com.coherentsolutions.pot.insurance_service.integration;
 
 import com.coherentsolutions.pot.insurance_service.integration.containers.PostgresTestContainer;
 import com.coherentsolutions.pot.insurance_service.dto.CompanyDto;
+import com.coherentsolutions.pot.insurance_service.dto.CompanyReactivationRequest;
 import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -372,10 +373,6 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
     @DisplayName("Should handle unsupported HTTP methods")
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
-        mockMvc.perform(delete("/v1/companies/{id}", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed());
-
         mockMvc.perform(patch("/v1/companies/{id}", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed());
@@ -448,5 +445,277 @@ class AdminCompanyManagementControllerIntegrationTest extends PostgresTestContai
                 .content(objectMapper.writeValueAsString(duplicateRequest))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated()); // Since there's no unique constraint, this should succeed
+    }
+
+    @Test
+    @DisplayName("Should deactivate company successfully")
+    void shouldDeactivateCompanySuccessfully() throws Exception {
+        // Given - Create a company first
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Company to Deactivate")
+                .countryCode("USA")
+                .email("deactivate@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // When & Then - Deactivate the company
+        String deactivateResponseJson = mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Parse and validate deactivated company
+        CompanyDto deactivatedCompany = objectMapper.readValue(deactivateResponseJson, CompanyDto.class);
+        assertEquals(companyId, deactivatedCompany.getId());
+        assertEquals(CompanyStatus.DEACTIVATED, deactivatedCompany.getStatus());
+
+        // Verify the deactivation persisted by retrieving the company
+        String getResponseJson = mockMvc.perform(get("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto retrievedCompany = objectMapper.readValue(getResponseJson, CompanyDto.class);
+        assertEquals(CompanyStatus.DEACTIVATED, retrievedCompany.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when deactivating already deactivated company")
+    void shouldReturn400WhenDeactivatingAlreadyDeactivatedCompany() throws Exception {
+        // Given - Create and deactivate a company
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Company to Deactivate")
+                .countryCode("USA")
+                .email("deactivate@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // Deactivate the company
+        mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // When & Then - Try to deactivate again
+        mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should reactivate company with all users successfully")
+    void shouldReactivateCompanyWithAllUsersSuccessfully() throws Exception {
+        // Given - Create and deactivate a company
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Company to Reactivate")
+                .countryCode("USA")
+                .email("reactivate@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // Deactivate the company
+        mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // When & Then - Reactivate with ALL users option
+        CompanyReactivationRequest reactivateRequest = new CompanyReactivationRequest(
+                CompanyReactivationRequest.UserReactivationOption.ALL, null);
+
+        String reactivateResponseJson = mockMvc.perform(post("/v1/companies/{id}/reactivate", companyId)
+                .content(objectMapper.writeValueAsString(reactivateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Parse and validate reactivated company
+        CompanyDto reactivatedCompany = objectMapper.readValue(reactivateResponseJson, CompanyDto.class);
+        assertEquals(companyId, reactivatedCompany.getId());
+        assertEquals(CompanyStatus.ACTIVE, reactivatedCompany.getStatus());
+
+        // Verify the reactivation persisted
+        String getResponseJson = mockMvc.perform(get("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto retrievedCompany = objectMapper.readValue(getResponseJson, CompanyDto.class);
+        assertEquals(CompanyStatus.ACTIVE, retrievedCompany.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should reactivate company with selected users successfully")
+    void shouldReactivateCompanyWithSelectedUsersSuccessfully() throws Exception {
+        // Given - Create and deactivate a company
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Company to Reactivate")
+                .countryCode("USA")
+                .email("reactivate@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // Deactivate the company
+        mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // When & Then - Reactivate with SELECTED users option
+        List<UUID> selectedUserIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+        CompanyReactivationRequest reactivateRequest = new CompanyReactivationRequest(
+                CompanyReactivationRequest.UserReactivationOption.SELECTED, selectedUserIds);
+
+        String reactivateResponseJson = mockMvc.perform(post("/v1/companies/{id}/reactivate", companyId)
+                .content(objectMapper.writeValueAsString(reactivateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Parse and validate reactivated company
+        CompanyDto reactivatedCompany = objectMapper.readValue(reactivateResponseJson, CompanyDto.class);
+        assertEquals(companyId, reactivatedCompany.getId());
+        assertEquals(CompanyStatus.ACTIVE, reactivatedCompany.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when reactivating with SELECTED option but no user IDs")
+    void shouldReturn400WhenReactivatingWithSelectedOptionButNoUserIds() throws Exception {
+        // Given - Create and deactivate a company
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Company to Reactivate")
+                .countryCode("USA")
+                .email("reactivate@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // Deactivate the company
+        mockMvc.perform(delete("/v1/companies/{id}", companyId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // When & Then - Reactivate with SELECTED option but no user IDs
+        CompanyReactivationRequest reactivateRequest = new CompanyReactivationRequest(
+                CompanyReactivationRequest.UserReactivationOption.SELECTED, null);
+
+        mockMvc.perform(post("/v1/companies/{id}/reactivate", companyId)
+                .content(objectMapper.writeValueAsString(reactivateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when reactivating already active company")
+    void shouldReturn400WhenReactivatingAlreadyActiveCompany() throws Exception {
+        // Given - Create a company (already active)
+        CompanyDto createRequest = CompanyDto.builder()
+                .name("Active Company")
+                .countryCode("USA")
+                .email("active@company.com")
+                .build();
+
+        String responseJson = mockMvc.perform(post("/v1/companies")
+                .content(objectMapper.writeValueAsString(createRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        CompanyDto createdCompany = objectMapper.readValue(responseJson, CompanyDto.class);
+        UUID companyId = createdCompany.getId();
+
+        // When & Then - Try to reactivate already active company
+        CompanyReactivationRequest reactivateRequest = new CompanyReactivationRequest(
+                CompanyReactivationRequest.UserReactivationOption.NONE, null);
+
+        mockMvc.perform(post("/v1/companies/{id}/reactivate", companyId)
+                .content(objectMapper.writeValueAsString(reactivateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when deactivating non-existent company")
+    void shouldReturn404WhenDeactivatingNonExistentCompany() throws Exception {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+
+        // When & Then
+        mockMvc.perform(delete("/v1/companies/{id}", nonExistentId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when reactivating non-existent company")
+    void shouldReturn404WhenReactivatingNonExistentCompany() throws Exception {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        CompanyReactivationRequest reactivateRequest = new CompanyReactivationRequest(
+                CompanyReactivationRequest.UserReactivationOption.NONE, null);
+
+        // When & Then
+        mockMvc.perform(post("/v1/companies/{id}/reactivate", nonExistentId)
+                .content(objectMapper.writeValueAsString(reactivateRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 } 

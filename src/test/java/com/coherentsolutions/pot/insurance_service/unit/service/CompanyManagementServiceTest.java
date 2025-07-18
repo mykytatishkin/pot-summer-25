@@ -152,7 +152,7 @@ class CompanyManagementServiceTest {
     @DisplayName("Should get company details by ID")
     void shouldGetCompanyDetailsById() {
         // Given
-        when(companyRepository.findById(testCompanyId)).thenReturn(Optional.of(testCompany));
+        when(companyRepository.findByIdOrThrow(testCompanyId)).thenReturn(testCompany);
         when(companyMapper.toCompanyDto(testCompany)).thenReturn(testCompanyDto);
 
         // When
@@ -161,7 +161,7 @@ class CompanyManagementServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(testCompanyDto);
-        verify(companyRepository).findById(testCompanyId);
+        verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyMapper).toCompanyDto(testCompany);
     }
 
@@ -169,14 +169,15 @@ class CompanyManagementServiceTest {
     @DisplayName("Should throw exception when company not found")
     void shouldThrowExceptionWhenCompanyNotFound() {
         // Given
-        when(companyRepository.findById(testCompanyId)).thenReturn(Optional.empty());
+        when(companyRepository.findByIdOrThrow(testCompanyId)).thenThrow(
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
         assertThatThrownBy(() -> companyManagementService.getCompanyDetails(testCompanyId))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND);
 
-        verify(companyRepository).findById(testCompanyId);
+        verify(companyRepository).findByIdOrThrow(testCompanyId);
     }
 
     @Test
@@ -206,7 +207,7 @@ class CompanyManagementServiceTest {
                 .status(CompanyStatus.ACTIVE)
                 .build();
 
-        when(companyRepository.findById(testCompanyId)).thenReturn(Optional.of(testCompany));
+        when(companyRepository.findByIdOrThrow(testCompanyId)).thenReturn(testCompany);
         when(companyRepository.save(any(Company.class))).thenReturn(updatedCompany);
         when(companyMapper.toCompanyDto(updatedCompany)).thenReturn(updatedCompanyDto);
 
@@ -220,7 +221,7 @@ class CompanyManagementServiceTest {
         assertThat(result.getEmail()).isEqualTo("updated@company.com");
         assertThat(result.getWebsite()).isEqualTo("https://updatedcompany.com");
 
-        verify(companyRepository).findById(testCompanyId);
+        verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyRepository).save(any(Company.class));
         verify(companyMapper).toCompanyDto(updatedCompany);
     }
@@ -233,14 +234,15 @@ class CompanyManagementServiceTest {
                 .name("Updated Company")
                 .build();
 
-        when(companyRepository.findById(testCompanyId)).thenReturn(Optional.empty());
+        when(companyRepository.findByIdOrThrow(testCompanyId)).thenThrow(
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
 
         // When & Then
         assertThatThrownBy(() -> companyManagementService.updateCompany(testCompanyId, updateRequest))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND);
 
-        verify(companyRepository).findById(testCompanyId);
+        verify(companyRepository).findByIdOrThrow(testCompanyId);
         verify(companyRepository, never()).save(any());
     }
 } 

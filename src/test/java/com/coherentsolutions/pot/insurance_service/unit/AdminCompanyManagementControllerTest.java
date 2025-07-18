@@ -480,12 +480,7 @@ class AdminCompanyManagementControllerTest extends AbstractControllerTest {
     void shouldHandleUnsupportedHttpMethods() throws Exception {
         // When & Then
         UUID testCompanyId = createTestCompanyId();
-        int status = getMockMvc().perform(delete("/v1/companies/{id}", testCompanyId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse().getStatus();
-        assertEquals(405, status); // Method Not Allowed
-
-        status = getMockMvc().perform(patch("/v1/companies/{id}", testCompanyId)
+        int status = getMockMvc().perform(patch("/v1/companies/{id}", testCompanyId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse().getStatus();
         assertEquals(405, status); // Method Not Allowed

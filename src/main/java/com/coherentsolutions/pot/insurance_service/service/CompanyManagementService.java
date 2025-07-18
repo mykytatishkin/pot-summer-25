@@ -37,8 +37,7 @@ public class CompanyManagementService {
     }
 
     public CompanyDto updateCompany(UUID id, CompanyDto request) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
+        Company company = companyRepository.findByIdOrThrow(id);
 
         // Prevent modifications of deactivated companies
         if (company.getStatus() == CompanyStatus.DEACTIVATED) {
@@ -81,8 +80,7 @@ public class CompanyManagementService {
     }
 
     public CompanyDto getCompanyDetails(UUID id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
+        Company company = companyRepository.findByIdOrThrow(id);
         return companyMapper.toCompanyDto(company);
     }
 
@@ -94,8 +92,7 @@ public class CompanyManagementService {
 
     @Transactional
     public CompanyDto deactivateCompany(UUID id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
+        Company company = companyRepository.findByIdOrThrow(id);
 
         if (company.getStatus() == CompanyStatus.DEACTIVATED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company is already deactivated");
@@ -103,7 +100,6 @@ public class CompanyManagementService {
 
         // Deactivate the company
         company.setStatus(CompanyStatus.DEACTIVATED);
-        company.setUpdatedAt(Instant.now());
         companyRepository.save(company);
 
         // Deactivate all users of the company
@@ -114,8 +110,7 @@ public class CompanyManagementService {
 
     @Transactional
     public CompanyDto reactivateCompany(UUID id, CompanyReactivationRequest request) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
+        Company company = companyRepository.findByIdOrThrow(id);
 
         if (company.getStatus() == CompanyStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company is already active");
@@ -123,24 +118,20 @@ public class CompanyManagementService {
 
         // Reactivate the company
         company.setStatus(CompanyStatus.ACTIVE);
-        company.setUpdatedAt(Instant.now());
         companyRepository.save(company);
 
         // Handle user reactivation based on the request
         switch (request.getUserReactivationOption()) {
-            case ALL:
-                userRepository.updateUserStatusByCompanyId(id, UserStatus.ACTIVE);
-                break;
-            case SELECTED:
+            case ALL -> userRepository.updateUserStatusByCompanyId(id, UserStatus.ACTIVE);
+            case SELECTED -> {
                 if (request.getSelectedUserIds() == null || request.getSelectedUserIds().isEmpty()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected user IDs are required when option is SELECTED");
                 }
                 userRepository.updateUserStatusByIds(request.getSelectedUserIds(), UserStatus.ACTIVE);
-                break;
-            case NONE:
-            default:
+            }
+            case NONE -> {
                 // No users are reactivated
-                break;
+            }
         }
 
         return companyMapper.toCompanyDto(company);
