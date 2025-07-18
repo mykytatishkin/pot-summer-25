@@ -1,10 +1,5 @@
 package com.coherentsolutions.pot.insurance_service.dto;
 
-import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -13,8 +8,10 @@ import com.coherentsolutions.pot.insurance_service.enums.CompanyStatus;
 import com.coherentsolutions.pot.insurance_service.model.Address;
 import com.coherentsolutions.pot.insurance_service.model.Phone;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
